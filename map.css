@@ -10,3 +10,5 @@
 @media(max-height:740px) and (min-width:901px){.world-intro{top:110px}.world-intro h1{font-size:36px}.world-intro h1 span{font-size:16px}.map-controls{top:100px}}
 @media(max-height:520px) and (min-aspect-ratio:6/5){.world-header{inset:15px 22px auto}.wordmark{font-size:20px}.wordmark span{font-size:7px;margin-top:4px}.world-edition{font-size:8px}.world-intro{left:50%;top:22px;right:auto;transform:translateX(-50%);white-space:nowrap}.world-intro>.eyebrow,.world-intro h1 span{display:none}.world-intro h1{font-size:24px;margin:0}.map-viewport{inset:85px 0 48px;background:#203c3a}.map-viewport::after{background:none}.map-controls{right:15px;top:0;display:flex}.world-footer{bottom:10px;right:22px}.world-credits{font-size:7px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.sds-version{font-variant-numeric:tabular-nums;letter-spacing:.02em}@media(max-height:520px) and (min-aspect-ratio:6/5){.world-footer{bottom:8px}.world-credits{font-size:7px;line-height:1.55}}

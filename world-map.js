@@ -1,4 +1,4 @@
-import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.021';
+import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.023';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
 const pins=new Map();let camera,baseScale=1,width=1,height=1,saved=null;
 try{saved=JSON.parse(sessionStorage.getItem('p143-world-map-state'));}catch{}
@@ -6,7 +6,7 @@ for(const place of PLACES){
  const pin=document.querySelector(`.map-pin[data-place="${place.id}"]`)||document.createElement('a');pin.className='map-pin';pin.dataset.place=place.id;pin.href=place.href;pin.style.left=`${place.x*100}%`;pin.style.top=`${place.y*100}%`;pin.setAttribute('aria-label',`前往${place.name}`);
  let label=pin.querySelector('.pin-label');if(!label){label=document.createElement('span');label.className='pin-label';pin.append(label);}label.textContent=place.name;$('map-pins').append(pin);pins.set(place.id,pin);
 }
-function saveState(){if(!camera)return;try{sessionStorage.setItem('p143-world-map-state',JSON.stringify({version:3,camera,width,height}));}catch{}}
+function saveState(){if(!camera)return;try{sessionStorage.setItem('p143-world-map-state',JSON.stringify({version:4,camera,width,height}));}catch{}}
 function render(){world.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`;world.style.setProperty('--pin-scale',1/camera.scale);$('zoom-out').disabled=camera.scale<=baseScale+.00001;$('zoom-in').disabled=camera.scale>=baseScale*4-.00001;viewport.setAttribute('data-map-scale',camera.scale.toFixed(4));keepLabelsVisible();saveState();}
 function keepLabelsVisible(){
  const bounds=viewport.getBoundingClientRect();
@@ -15,7 +15,7 @@ function keepLabelsVisible(){
  }
 }
 function resize(){const rect=viewport.getBoundingClientRect();width=rect.width;height=rect.height;const compact=matchMedia('(max-width:900px), (max-aspect-ratio:1/1), (max-height:520px)').matches;camera=fitCamera(width,height,compact);baseScale=camera.scale;if(compact)camera=framePlacesCamera(width,height);
- if(saved?.version===3&&saved.width===width&&saved.height===height&&saved.camera&&['scale','x','y'].every(k=>Number.isFinite(saved.camera[k]))&&saved.camera.scale>=baseScale&&saved.camera.scale<=baseScale*4){camera=constrainCamera(saved.camera,width,height);}saved=null;render();}
+ if(saved?.version===4&&saved.width===width&&saved.height===height&&saved.camera&&['scale','x','y'].every(k=>Number.isFinite(saved.camera[k]))&&saved.camera.scale>=baseScale&&saved.camera.scale<=baseScale*4){camera=constrainCamera(saved.camera,width,height);}saved=null;render();}
 function zoom(factor,anchor={x:width/2,y:height/2}){camera=zoomCamera(camera,Math.min(baseScale*4,Math.max(baseScale,camera.scale*factor)),anchor,width,height);render();}
 $('zoom-in').addEventListener('click',()=>zoom(1.3));$('zoom-out').addEventListener('click',()=>zoom(1/1.3));$('map-fit').addEventListener('click',()=>{camera=fitCamera(width,height,matchMedia('(max-width:900px), (max-aspect-ratio:1/1), (max-height:520px)').matches);render();});
 viewport.addEventListener('wheel',e=>{if(e.target.closest('.map-controls'))return;e.preventDefault();const rect=viewport.getBoundingClientRect();zoom(Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.003),{x:e.clientX-rect.left,y:e.clientY-rect.top});},{passive:false});
