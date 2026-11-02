@@ -13,7 +13,7 @@ for(const scene of Object.values(PHOTO_SCENES))for(const [w,h] of [[1366,940],[1
   checks++;
  }
  const before=photoViewport(scene.width,scene.height,w,h,scene.zoom);
- const up=applyDragLook(0,0,0,-50),right=applyDragLook(0,0,50,0);
+ const up=applyDragLook(0,0,0,-50,{}),right=applyDragLook(0,0,50,0,{});
  assert.ok(photoViewport(scene.width,scene.height,w,h,scene.zoom,up.yaw,up.pitch).y<before.y,'Upward drag must reveal the upper image');
  assert.ok(photoViewport(scene.width,scene.height,w,h,scene.zoom,right.yaw,right.pitch).x>before.x,'Rightward drag must reveal the right image');
 }

@@ -15,12 +15,12 @@ class Node{constructor(){this.attrs={};this.style={};this.children=[];}setAttrib
 globalThis.document={createElementNS:()=>new Node()};globalThis.innerWidth=1363;globalThis.innerHeight=936;
 let fail=false;globalThis.Image=class{set src(value){queueMicrotask(()=>fail?this.onerror():this.onload());}};
 const svg=new Node();svg.append(new Node());const view=new PhotoView(svg,PHOTO_SCENES);await view.ready;
-view.setMotion(true);view.setWaveStrength(.7);view.drag(60,-40,{});const look=[view.yaw,view.pitch];
+view.setMotion(true);view.setGrassMotion(true);view.setWaveStrength(.7);view.drag(60,-40,{});const look=[view.yaw,view.pitch];
 const {lightAtMinute}=await import('../light-clock.js');
 view.setLightState(lightAtMinute(21*60),21*60);assert.deepEqual([view.yaw,view.pitch],look);assert.equal(svg.attrs['data-light-time'],'21:00');
 assert.equal(view.layers[2].image.attrs.href,'assets/photo-entry-night.png');assert.equal(view.layers[2].motion.rows[0].image.attrs.href,view.layers[2].image.attrs.href);
-await view.setView('sofa');assert.equal(view.minute,21*60);assert.equal(view.layers[2].image.attrs.href,'assets/photo-sofa-night.png');assert.equal(view.yaw,0);
+await view.setView('sofa');assert.equal(view.layers[2].grass.patches[0].image.attrs.href,'assets/photo-sofa-night.png');assert.equal(svg.attrs['data-grass-motion'],'running');assert.equal(view.minute,21*60);assert.equal(view.layers[2].image.attrs.href,'assets/photo-sofa-night.png');assert.equal(view.yaw,0);
 fail=true;assert.equal(await view.setView('records'),false);assert.equal(view.view,'sofa');
 fail=false;const first=view.setView('records'),last=view.setView('entry');assert.equal(await first,false);assert.equal(await last,true);assert.equal(view.view,'entry');
-view.setMotion(false);await view.setView('window');assert.equal(svg.attrs['data-sea-motion'],'paused');
+view.setMotion(false);view.setGrassMotion(false);await view.setView('window');assert.equal(svg.attrs['data-grass-motion'],'paused');assert.equal(svg.attrs['data-sea-motion'],'paused');
 console.log('PASS: 12 presets, matching assets, blended sea sources, retained lighting across views, stopped motion, failed and stale load protection.');

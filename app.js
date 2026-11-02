@@ -1,10 +1,10 @@
 import * as THREE from './assets/three.module.js';
 import { SOFA_VIEW, OCEAN_PLATE } from './view-config.js';
-import { applyDragLook, describeLookSettings } from './look-controls.js';
+import { applyDragLook, describeLookSettings, readLookSettings } from './look-controls.js?v=0.013';
 import { RoomEnvironment } from './assets/RoomEnvironment.js';
-import { PhotoView } from './photo-view.js';
+import { PhotoView } from './photo-view.js?v=0.013';
 import { LightClock,formatMinute } from './light-clock.js';
-import { PHOTO_SCENES } from './photo-scenes.js';
+import { PHOTO_SCENES } from './photo-scenes.js?v=0.013';
 import { parseSoundSettings } from './sound-settings.js';
 
 const $=id=>document.getElementById(id);
@@ -47,8 +47,7 @@ let yaw=-.42,pitch=-.025,entered=false,seated=false,navigation=null,transitionin
 let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 try{reduced=localStorage.getItem('cabin-reduced')===null?reduced:localStorage.getItem('cabin-reduced')==='true';}catch{}
 $('reduce-motion').checked=reduced;
-const lookSettings={invertX:false,invertY:false};
-try{lookSettings.invertX=localStorage.getItem('cabin-look-invert-x')==='true';lookSettings.invertY=localStorage.getItem('cabin-look-invert-y')==='true';}catch{}
+const lookSettings=readLookSettings();
 $('invert-look-x').checked=lookSettings.invertX;
 $('invert-look-y').checked=lookSettings.invertY;
 $('drag-direction').textContent=describeLookSettings(lookSettings);
@@ -59,6 +58,7 @@ const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const clock=new THREE.Clock();
 let savedSound=null;try{savedSound=localStorage.getItem('cabin-sound-settings');}catch{}
 let {musicVolume,seaVolume,muted,oceanMotion,waveStrength}=parseSoundSettings(savedSound);
+let grassMotion=true;try{grassMotion=localStorage.getItem('cabin-grass-motion')!=='false';}catch{}
 let elapsed=0,hintTimer,lastActivity=performance.now(),activeTrack=-1;
 const tracks=[{name:'琥珀時光',english:'Amber Hours'},{name:'靜謐琴聲',english:'Still Keys'},{name:'水晶潮汐',english:'Crystal Tide'}].map((track,id)=>({...track,defaultUrl:`Music/P143-0${id+1}.mp3`,url:`Music/P143-0${id+1}.mp3`,file:`P143-0${id+1}.mp3`,custom:false,revision:0}));
 const audio=new Audio();audio.id='record-audio';audio.hidden=true;audio.preload='none';audio.loop=true;audio.volume=musicVolume;document.body.append(audio);
@@ -151,7 +151,7 @@ interactive(box(.6,.7,2.2,cabinetMat,2.65,.45,-.2),'records');box(.65,.07,2.26,t
 for(let z=-1.25;z<.94;z+=.43){box(.014,.59,.015,darkWood,2.342,.45,z);}
 [-1.05,.65].forEach(z=>box(.4,.13,.06,darkWood,2.66,.08,z));
 const manager=new THREE.LoadingManager();
-manager.onLoad=async()=>{sleeves.forEach(s=>{s.front.material.map.needsUpdate=true;});if(photoMode){let loaded=await photoView.ready;if(!loaded){loaded=await photoView.setView('entry');if(loaded){syncLightUI();}else{$('load-error').textContent='小屋圖片暫時無法載入，請重新整理再試。';return;}}}$('enter').disabled=false;$('enter').textContent=photoMode?'進入寫實小屋':scenicMode?(fallbackMode==='model'?'查看模型預覽':'進入靜景小屋'):'進入 3D 小屋';};
+manager.onLoad=async()=>{sleeves.forEach(s=>{s.front.material.map.needsUpdate=true;});if(photoMode){let loaded=await photoView.ready;if(!loaded){loaded=await photoView.setView('entry');if(loaded){syncLightUI();}else{$('load-error').textContent='小屋圖片暫時無法載入，請重新整理再試。';return;}}}$('enter').disabled=false;$('enter').textContent='進入海邊小屋';};
 manager.onError=url=>{$('load-error').textContent='部分素材未能載入，您仍可進入小屋。';};
 const loader=new THREE.TextureLoader(manager);
 const albumBase=loader.load('assets/albums.png');albumBase.colorSpace=THREE.SRGBColorSpace;
@@ -235,7 +235,7 @@ audio.addEventListener('pause',updatePlayer);audio.addEventListener('play',updat
 function initSea(){try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();if(!seaGain){const buffer=audioContext.createBuffer(1,audioContext.sampleRate*12,audioContext.sampleRate),data=buffer.getChannelData(0);let last=0;for(let i=0;i<data.length;i++){const white=Math.random()*2-1;last=(last+white*.03)/1.03;data[i]=last*3.2;}const source=audioContext.createBufferSource();source.buffer=buffer;source.loop=true;const low=audioContext.createBiquadFilter();low.type='lowpass';low.frequency.value=1700;const high=audioContext.createBiquadFilter();high.type='highpass';high.frequency.value=110;seaGain=audioContext.createGain();seaGain.gain.value=0;source.connect(low).connect(high).connect(seaGain).connect(audioContext.destination);source.start();}audioContext.resume();}catch{toast('目前無法啟動海浪聲，您仍可使用唱機。');}}
 function setVolumes(){audio.volume=muted?0:musicVolume;$('mute').textContent=muted?'恢復聲音':'全部靜音';}
 function saveSoundSettings(){try{localStorage.setItem('cabin-sound-settings',JSON.stringify({musicVolume,seaVolume,muted,oceanMotion,waveStrength}));}catch{}}
-function syncSeaMotion(){const enabled=oceanMotion&&!reduced;if(photoMode){photoView.setMotion(enabled);photoView.setWaveStrength(waveStrength);}$('wave-strength').value=Math.round(waveStrength*100);$('wave-value').textContent=Math.round(waveStrength*100)+'%';$('wave-strength').disabled=!enabled||(scenicMode&&!photoMode);oceanMaterial.uniforms.uMotion.value=enabled?waveStrength/.7:0;$('ocean-motion').checked=oceanMotion;$('ocean-motion').disabled=reduced||(scenicMode&&!photoMode);$('motion-status').textContent=scenicMode&&!photoMode?'目前固定視角模式不播放海面動態。':reduced?'已啟用「減少動態」，海面保持靜止。':oceanMotion&&waveStrength>0?'海浪緩緩湧進、退回，可調整起伏幅度。':'海面動態已關閉。';}
+function syncSeaMotion(){const enabled=oceanMotion&&!reduced;if(photoMode){photoView.setMotion(enabled);photoView.setWaveStrength(waveStrength);photoView.setGrassMotion(grassMotion&&!reduced);}$('grass-motion').checked=grassMotion;$('grass-motion').disabled=reduced||!photoMode;$('wave-strength').value=Math.round(waveStrength*100);$('wave-value').textContent=Math.round(waveStrength*100)+'%';$('wave-strength').disabled=!enabled||(scenicMode&&!photoMode);oceanMaterial.uniforms.uMotion.value=enabled?waveStrength/.7:0;$('ocean-motion').checked=oceanMotion;$('ocean-motion').disabled=reduced||(scenicMode&&!photoMode);$('motion-status').textContent=scenicMode&&!photoMode?'目前固定視角模式不播放海面動態。':reduced?'已啟用「減少動態」，海面保持靜止。':oceanMotion&&waveStrength>0?'海浪緩緩湧進、退回，可調整起伏幅度。':'海面動態已關閉。';}
 
 $('enter').addEventListener('click',()=>{if(entered)return;entered=true;document.body.classList.add('entered');$('welcome').classList.add('leaving');initSea();activity();canvas.focus();toast('歡迎。慢慢看看，這裡沒有需要完成的事。');});
 $('records-button').addEventListener('click',()=>navigate('records',()=>openDialog('records')));
@@ -270,6 +270,7 @@ $('music-volume').addEventListener('input',e=>{musicVolume=Number(e.target.value
 $('mute').addEventListener('click',()=>{muted=!muted;setVolumes();saveSoundSettings();});
 $('wave-strength').addEventListener('input',e=>{waveStrength=Number(e.target.value)/100;syncSeaMotion();saveSoundSettings();activity();});
 $('ocean-motion').addEventListener('change',e=>{oceanMotion=e.target.checked;syncSeaMotion();saveSoundSettings();activity();});
+$('grass-motion').addEventListener('change',e=>{grassMotion=e.target.checked;syncSeaMotion();try{localStorage.setItem('cabin-grass-motion',String(grassMotion));}catch{}activity();});
 $('reduce-motion').addEventListener('change',e=>{reduced=e.target.checked;syncSeaMotion();try{localStorage.setItem('cabin-reduced',String(reduced));}catch{}});
 for(const [key,value] of [['sea',seaVolume],['music',musicVolume]]){$(key+'-volume').value=Math.round(value*100);$(key+'-value').textContent=Math.round(value*100)+'%';}
 setVolumes();syncSeaMotion();updatePlayer();
@@ -287,7 +288,7 @@ canvas.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)
 canvas.addEventListener('pointerup',e=>{if(!pointer||e.pointerId!==pointer.id)return;const p=pointer;pointer=null;canvas.releasePointerCapture(e.pointerId);if(!p.drag&&!p.wakeOnly)clickScene(e);});
 canvas.addEventListener('pointercancel',()=>{pointer=null;});
 function clickScene(e){if(photoMode){const action=photoView.hit(e.clientX,e.clientY);if(action==='sofa')sit();else if(action==='records')navigate('records',()=>openDialog('records'));else if(action==='window')navigate('window');activity();return;}if(scenicMode){activity();return;}mouse.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(interactionObjects,false)[0];if(hit&&hit.distance<5){const data=hit.object.userData;if(data.kind==='sofa'){sit();return;}if(data.kind==='records'||data.kind==='sleeve'){navigate('records',()=>openDialog('records'));return;}}if(seated)return;const p=new THREE.Vector3();if(raycaster.ray.intersectPlane(floorPlane,p)&&walkable(p.x,p.z)){const points=pathTo(p);if(points)navigation={points,name:'walk',look:null};}}
-window.addEventListener('keydown',e=>{if(!entered||anyDialog()||transitioning)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)){e.preventDefault();if(photoMode){const steps={arrowup:[0,-35],arrowdown:[0,35],arrowleft:[-35,0],arrowright:[35,0]};const step=steps[e.key.toLowerCase()];if(step)photoView.drag(...step,lookSettings);else toast('寫實視景請使用下方按鈕切換位置。');activity();return;}if(scenicMode){activity();toast('固定視角模式請使用下方按鈕切換位置。');return;}if(seated){toast('點「起身走走」後就能移動。');return;}navigation=null;keys.add(e.key.toLowerCase());activity();}});
+window.addEventListener('keydown',e=>{if(!entered||anyDialog()||transitioning)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)){e.preventDefault();if(photoMode){const steps={arrowup:[0,-35],arrowdown:[0,35],arrowleft:[-35,0],arrowright:[35,0]};const step=steps[e.key.toLowerCase()];if(step)photoView.drag(...step,{invertX:false,invertY:false});else toast('寫實視景請使用下方按鈕切換位置。');activity();return;}if(scenicMode){activity();toast('固定視角模式請使用下方按鈕切換位置。');return;}if(seated){toast('點「起身走走」後就能移動。');return;}navigation=null;keys.add(e.key.toLowerCase());activity();}});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>{keys.clear();pointer=null;});
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(photoMode)photoView.resize();});
 
