@@ -14,15 +14,15 @@ export function lightAtMinute(minute){const m=normalizeMinute(minute);let i=keys
 const smooth=t=>t*t*(3-2*t);
 // Automatic time advances through continuous five-minute lighting intervals.
 // Manual previews use the exact requested minute without any temporal easing.
-export function automaticLightAtMinute(minute){const m=normalizeMinute(minute),span=FADE_MS/60000,start=Math.floor(m/span)*span;return mixLight(lightAtMinute(start),lightAtMinute(start+span),smooth((m-start)/span));}
+export function automaticLightAtMinute(minute,atMinute=lightAtMinute){const m=normalizeMinute(minute),span=FADE_MS/60000,start=Math.floor(m/span)*span;return mixLight(atMinute(start),atMinute(start+span),smooth((m-start)/span));}
 export class LightClock{
- constructor(date=new Date()){this.follow=true;this.minute=localMinute(date);this.current=automaticLightAtMinute(this.minute);this.fade=null;}
- select(minute){this.follow=false;this.minute=normalizeMinute(minute);this.fade=null;this.current=lightAtMinute(this.minute);}
+ constructor(date=new Date(),atMinute=lightAtMinute){this.atMinute=atMinute;this.follow=true;this.minute=localMinute(date);this.current=automaticLightAtMinute(this.minute,this.atMinute);this.fade=null;}
+ select(minute){this.follow=false;this.minute=normalizeMinute(minute);this.fade=null;this.current=this.atMinute(this.minute);}
  followNow(now=performance.now(),date=new Date()){this.sample(now,date);this.follow=true;this.minute=localMinute(date);this.fade={start:now,from:this.current};}
  sample(now=performance.now(),date=new Date()){
   if(this.follow)this.minute=localMinute(date);
-  const target=this.follow?automaticLightAtMinute(this.minute):lightAtMinute(this.minute);let progress=1;
+  const target=this.follow?automaticLightAtMinute(this.minute,this.atMinute):this.atMinute(this.minute);let progress=1;
   if(this.fade){progress=Math.min(1,Math.max(0,(now-this.fade.start)/FADE_MS));this.current=mixLight(this.fade.from,target,smooth(progress));if(progress===1)this.fade=null;}else this.current=target;
-  return {state:this.current,minute:this.minute,follow:this.follow,progress,transitioning:!!this.fade,label:lightAtMinute(this.minute).label};
+  return {state:this.current,minute:this.minute,follow:this.follow,progress,transitioning:!!this.fade,label:this.atMinute(this.minute).label};
  }
 }

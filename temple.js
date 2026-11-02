@@ -1,30 +1,33 @@
-import {LightClock,formatMinute} from './light-clock.js';
+import {LightClock,formatMinute} from './light-clock.js?v=0.017';
+import {templeLightAtMinute,TEMPLE_MOMENTS} from './temple-light.js?v=0.017';
 import {TempleView} from './temple-scene.js?v=0.016';
-import {TempleAudio} from './temple-audio.js?v=0.016';
+import {TempleAudio} from './temple-audio.js?v=0.017';
 import {readLookSettings,describeLookSettings} from './look-controls.js?v=0.013';
 
-const $=id=>document.getElementById(id),stage=$('temple-stage'),view=new TempleView($('temple-view')),clock=new LightClock(),sound=new TempleAudio();
+const $=id=>document.getElementById(id),stage=$('temple-stage'),view=new TempleView($('temple-view')),clock=new LightClock(new Date(),templeLightAtMinute),sound=new TempleAudio();
 const reduceMedia=matchMedia('(prefers-reduced-motion: reduce)');
 let saved={};try{saved=JSON.parse(localStorage.getItem('p143-temple-settings-v1'))||{};}catch{}
 const level=(value,fallback)=>typeof value==='number'&&Number.isFinite(value)?Math.max(0,Math.min(1,value)):fallback;
 const look=readLookSettings();for(const key of ['invertX','invertY'])if(typeof saved[key]==='boolean')look[key]=saved[key];
-let wind=level(saved.wind,.18),bells=level(saved.bells,.22),recordingVolume=level(saved.recordingVolume,.25),muted=saved.muted===true,foliage=saved.foliage!==false,reduced=typeof saved.reduced==='boolean'?saved.reduced:reduceMedia.matches;
+let wind=level(saved.wind,.1),bells=level(saved.bells,.22),recordingVolume=level(saved.recordingVolume,.25),muted=saved.muted===true,foliage=saved.foliage!==false,reduced=typeof saved.reduced==='boolean'?saved.reduced:reduceMedia.matches;
+if(saved.windDefaultVersion!==2&&wind===.18)wind=.1;
 let entered=false,quiet=false,leaving=false,pointer=null,lastTick=-Infinity,toastTimer,visibilityRevision=0;
 const audio=new Audio();audio.loop=true;audio.preload='metadata';
 let activeTrack=null,playToken=0,dbPromise,writeQueue=Promise.resolve();
 const tracks={chant:{name:'梵音',url:null,filename:'',revision:0},sutra:{name:'誦經',url:null,filename:'',revision:0}};
 function toast(text){$('hint').textContent=text;$('hint').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('hint').classList.remove('visible'),4500);}
-function save(){try{localStorage.setItem('p143-temple-settings-v1',JSON.stringify({wind,bells,recordingVolume,muted,foliage,reduced,...look}));}catch{}}
+function save(){try{localStorage.setItem('p143-temple-settings-v1',JSON.stringify({windDefaultVersion:2,wind,bells,recordingVolume,muted,foliage,reduced,...look}));}catch{}}
 function setQuiet(value){quiet=value;document.body.classList.toggle('quiet',value);document.querySelectorAll('.hud').forEach(el=>el.inert=value);$('wake').hidden=!value;if(value)stage.focus({preventScroll:true});}
 function applySound(){sound.setLevels(wind,bells,muted);audio.volume=muted?0:recordingVolume;$('mute').textContent=muted?'恢復聲音':'全部靜音';}
 function applyMotion(){view.setMotion(foliage&&!reduced);$('foliage-motion').checked=foliage;$('foliage-motion').disabled=reduced;$('reduce-motion').checked=reduced;}
 function updateLook(){$('invert-look-x').checked=look.invertX;$('invert-look-y').checked=look.invertY;$('drag-direction').textContent=describeLookSettings(look);}
-function tick(now=performance.now()){const frame=clock.sample(now),time=formatMinute(frame.minute);view.setLight(frame);$('light-label').textContent=time;$('light-current').textContent=time+' · '+(frame.follow?'跟隨現在':'手動暫停');$('light-follow').checked=frame.follow;if(document.activeElement!==$('light-time'))$('light-time').value=Math.floor(frame.minute);$('light-time-value').textContent=time;$('light-time').setAttribute('aria-valuetext',time);$('light-status').textContent=frame.transitioning?`正在平順接回現在的光景 · 約 ${Math.max(1,Math.ceil((1-frame.progress)*5))} 分鐘後完成。`:frame.follow?'跟隨裝置當地時間，光景以 5 分鐘平順漸變。':'已停在選定時刻；聲音仍可繼續播放。';document.body.dataset.timeMode=frame.follow?'auto':'manual';}
+function tick(now=performance.now()){const frame=clock.sample(now),time=formatMinute(frame.minute);view.setLight(frame);$('light-label').textContent=time;$('light-current').textContent=time+' · '+frame.label+' · '+(frame.follow?'跟隨現在':'手動暫停');$('light-follow').checked=frame.follow;if(document.activeElement!==$('light-time'))$('light-time').value=Math.floor(frame.minute);$('light-time-value').textContent=time;$('light-time').setAttribute('aria-valuetext',time);$('light-status').textContent=frame.transitioning?`正在平順接回現在的光景 · 約 ${Math.max(1,Math.ceil((1-frame.progress)*5))} 分鐘後完成。`:frame.follow?'跟隨裝置當地時間，光景以 5 分鐘平順漸變。':'已停在選定時刻；聲音仍可繼續播放。';document.body.dataset.timeMode=frame.follow?'auto':'manual';for(const button of document.querySelectorAll('[data-moment]'))button.setAttribute('aria-pressed',String(!frame.follow&&Number(button.dataset.moment)===Math.floor(frame.minute)));const moment=TEMPLE_MOMENTS.find(p=>p.minute===Math.floor(frame.minute));$('moment-description').textContent=moment?.description||'拖曳時間，看看庭院與禪房如何隨光改變。';}
 function openDialog(id){setQuiet(false);$(id).showModal();}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());}
 for(const button of document.querySelectorAll('.close'))button.addEventListener('click',()=>button.closest('dialog').close());
 for(const id of ['light','sound','help'])$(id+'-button').addEventListener('click',()=>{tick();openDialog(id);});
 $('sit-button').addEventListener('click',()=>setQuiet(true));$('wake').addEventListener('click',()=>setQuiet(false));
+for(const moment of TEMPLE_MOMENTS){const button=document.createElement('button');button.type='button';button.dataset.moment=moment.minute;button.textContent=moment.label+' '+formatMinute(moment.minute);button.setAttribute('aria-pressed','false');button.addEventListener('click',()=>{clock.select(moment.minute);tick();});$('light-moments').append(button);}
 $('light-time').addEventListener('input',e=>{clock.select(Number(e.target.value));tick();});
 $('light-follow').addEventListener('change',e=>{if(e.target.checked)clock.followNow();else clock.select(clock.minute);tick();});
 for(const[id,read,set]of [['wind',()=>wind,v=>wind=v],['bell',()=>bells,v=>bells=v],['chant',()=>recordingVolume,v=>recordingVolume=v]]){const slider=$(id+'-volume');slider.value=Math.round(read()*100);$(id+'-value').textContent=slider.value+'%';slider.addEventListener('input',()=>{set(Number(slider.value)/100);$(id+'-value').textContent=slider.value+'%';applySound();save();});}
