@@ -1,3 +1,4 @@
+import {NightSky} from './night-sky.js?v=0.022';
 import {GrassMotion} from './grass-motion.js?v=0.014';
 
 export const TEMPLE_SCENE={width:1774,height:887,plates:['assets/temple-day.png','assets/temple-morning.png','assets/temple-night.png'],foliage:[
@@ -16,10 +17,10 @@ const NS='http://www.w3.org/2000/svg';
 export class TempleView{
  constructor(svg){this.svg=svg;this.gaze=initialTempleGaze(innerWidth,innerHeight);this.layers=[];this.motion=true;
   for(const src of TEMPLE_SCENE.plates){const group=document.createElementNS(NS,'g'),image=document.createElementNS(NS,'image');image.setAttribute('href',src);image.setAttribute('width',TEMPLE_SCENE.width);image.setAttribute('height',TEMPLE_SCENE.height);image.setAttribute('preserveAspectRatio','none');group.append(image);svg.append(group);const leaves=new GrassMotion(group);leaves.setScene({...TEMPLE_SCENE,src,grassMasks:TEMPLE_SCENE.foliage});leaves.setEnabled(true);this.layers.push({group,leaves});}
-  this.tint=document.createElementNS(NS,'rect');for(const[k,v]of Object.entries({width:TEMPLE_SCENE.width,height:TEMPLE_SCENE.height,'pointer-events':'none'}))this.tint.setAttribute(k,v);svg.append(this.tint);this.resize();
+  this.tint=document.createElementNS(NS,'rect');for(const[k,v]of Object.entries({width:TEMPLE_SCENE.width,height:TEMPLE_SCENE.height,'pointer-events':'none'}))this.tint.setAttribute(k,v);svg.append(this.tint);this.nightSky=new NightSky(svg,'temple');this.resize();
  }
  async load(){const loaded=await Promise.all(TEMPLE_SCENE.plates.map(src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(true);img.onerror=()=>resolve(false);img.src=src;})));return loaded.every(Boolean);}
- setLight(frame){const state=frame.state,[day,gold,night]=state.weights,alphas=[1,day+gold?gold/(day+gold):0,night];this.weights=state.weights;
+ setLight(frame){const state=frame.state,[day,gold,night]=state.weights,alphas=[1,day+gold?gold/(day+gold):0,night];this.weights=state.weights;this.nightSky.setLight(state);
   this.layers.forEach((l,i)=>l.group.setAttribute('opacity',alphas[i].toFixed(6)));this.svg.style.filter=`brightness(${state.brightness}) saturate(${state.saturation})`;this.tint.setAttribute('fill',`rgb(${state.tint.map(Math.round).join(',')})`);this.tint.setAttribute('opacity',state.tintAlpha);this.svg.dataset.lightTime=String(frame.minute);this.svg.dataset.lightWeights=state.weights.map(w=>w.toFixed(6)).join(',');
  }
  resize(){const c=templeViewport(innerWidth,innerHeight,this.gaze);this.svg.setAttribute('viewBox',`${c.x} ${c.y} ${c.width} ${c.height}`);this.svg.dataset.gaze=`${this.gaze.x.toFixed(4)},${this.gaze.y.toFixed(4)}`;}

@@ -1,6 +1,6 @@
 import {LightClock,formatMinute} from './light-clock.js?v=0.017';
-import {templeLightAtMinute,TEMPLE_MOMENTS} from './temple-light.js?v=0.017';
-import {TempleView} from './temple-scene.js?v=0.016';
+import {templeLightAtMinute,TEMPLE_MOMENTS} from './temple-light.js?v=0.022';
+import {TempleView} from './temple-scene.js?v=0.022';
 import {TempleAudio} from './temple-audio.js?v=0.017';
 import {readLookSettings,describeLookSettings} from './look-controls.js?v=0.013';
 
