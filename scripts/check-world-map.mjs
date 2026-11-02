@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from '../world-map-model.js';
-assert.equal(PLACES.length,4);assert.equal(PLACES.filter(p=>p.status==='open').length,1);assert.equal(PLACES.filter(p=>p.status==='coming').length,3);
+assert.equal(PLACES.length,4);assert.equal(PLACES.filter(p=>p.status==='open').length,2);assert.equal(PLACES.filter(p=>p.status==='coming').length,2);
 assert.equal(new Set(PLACES.map(p=>p.id)).size,PLACES.length);
 for(const p of PLACES){assert.ok(p.x>0&&p.x<1&&p.y>0&&p.y<1);if(p.status==='open')assert.ok(existsSync(new URL('../'+p.href,import.meta.url)));else assert.equal(p.href,undefined);}
 let checks=0;
@@ -12,4 +12,5 @@ for(const [w,h,compact] of [[1363,936,false],[1920,1080,false],[1024,768,false],
 }
 const png=readFileSync(new URL('../assets/world-map-v0012.png',import.meta.url));assert.equal(png.readUInt32BE(16),MAP_SIZE.width);assert.equal(png.readUInt32BE(20),MAP_SIZE.height);
 const home=readFileSync(new URL('../index.html',import.meta.url),'utf8'),room=readFileSync(new URL('../seaside.html',import.meta.url),'utf8');assert.ok(home.includes('自在之所')&&home.includes('自在心圖'));assert.ok(home.includes('href="seaside.html"'));assert.ok(!home.includes('src="app.js'));assert.ok(room.includes('id="return-map"')&&room.includes('href="./"'));assert.ok(room.includes('data-play="0"')&&room.includes('id="light-time"'));
-console.log(`PASS: 4 destinations / only seaside open, photographic asset coordinates, ${checks} camera boundary cases, zoom anchor, mobile whole-map fit, room link, return link and preserved room controls.`);
+assert.equal(PLACES.find(p=>p.id==='temple').href,'temple.html');
+console.log(`PASS: 4 destinations / seaside and temple open, photographic asset coordinates, ${checks} camera boundary cases, zoom anchor, mobile whole-map fit, room links and preserved cabin controls.`);

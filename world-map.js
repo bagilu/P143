@@ -1,4 +1,4 @@
-import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js';
+import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.016';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
 const pins=new Map(),listButtons=new Map();let camera,baseScale=1,width=1,height=1,selected='seaside',saved=null;
 try{saved=JSON.parse(sessionStorage.getItem('p143-world-map-state'));}catch{}
@@ -43,4 +43,4 @@ viewport.addEventListener('keydown',e=>{if(e.target!==viewport)return;const shif
 const restoredSelection=saved?.id;new ResizeObserver(resize).observe(viewport);resize();selectPlace(restoredSelection||'seaside');
 // The image remains useful if modules fail: its scene link exists in the HTML.
 const image=$('world-image');function imageReady(){$('map-loading').hidden=true;viewport.setAttribute('data-map-ready','true');}
-image.addEventListener('load',imageReady);image.addEventListener('error',()=>{$('map-loading').textContent='地景暫時無法載入，仍可從地點一覽前往海邊小屋。';});if(image.complete&&image.naturalWidth)imageReady();
+image.addEventListener('load',imageReady);image.addEventListener('error',()=>{$('map-loading').textContent='地景暫時無法載入，仍可從地點一覽選擇自在之所。';});if(image.complete&&image.naturalWidth)imageReady();

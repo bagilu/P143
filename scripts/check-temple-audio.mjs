@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {TempleAudio,bellInterval,BELL_MODES} from '../temple-audio.js';
+assert.equal(bellInterval(()=>0),45000);assert.equal(bellInterval(()=>1),90000);assert.equal(BELL_MODES.length,5);
+let sequence=0,timers=new Map();globalThis.setTimeout=(fn,delay)=>{const id=++sequence;timers.set(id,{fn,delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);
+class Param{constructor(){this.value=0;}setTargetAtTime(v){this.value=v;}setValueAtTime(v){this.value=v;}exponentialRampToValueAtTime(v){this.value=v;}cancelScheduledValues(){}}
+class AudioNode{constructor(){this.gain=new Param();this.frequency=new Param();this.threshold=new Param();this.ratio=new Param();}connect(node){return node;}disconnect(){this.disconnected=true;}start(){this.started=true;}stop(){this.stopped=true;}}
+class Context{constructor(){this.currentTime=0;this.sampleRate=100;this.destination=new AudioNode();this.oscillators=[];}createGain(){return new AudioNode();}createDynamicsCompressor(){return new AudioNode();}createBuffer(ch,n){return{getChannelData:()=>new Float32Array(n)};}createBufferSource(){return new AudioNode();}createBiquadFilter(){return new AudioNode();}createConvolver(){return new AudioNode();}createOscillator(){const o=new AudioNode();this.oscillators.push(o);return o;}async resume(){this.state='running';}async suspend(){this.state='suspended';}}
+globalThis.AudioContext=Context;const sound=new TempleAudio();assert.equal(await sound.start(),true);assert.equal(timers.size,1);assert.equal([...timers.values()][0].delay,9000);
+assert.equal(sound.ring(),true);assert.equal(sound.voices.size,1);assert.equal(sound.ctx.oscillators.length,5);sound.setLevels(.2,.3,true);assert.equal(sound.master.gain.value,0);assert.equal(sound.voices.size,0);assert.equal(sound.ring(),false);
+sound.setLevels(.2,0,false);assert.equal(sound.ring(),false);sound.setLevels(.2,.3,false);sound.schedule();assert.equal(timers.size,1);assert.ok([...timers.values()][0].delay>=45000);
+await sound.suspend();assert.equal(timers.size,0);assert.equal(sound.active,false);assert.equal(sound.ctx.state,'suspended');assert.equal(sound.ring(),false);
+await sound.resume();assert.equal(timers.size,1);const leave=sound.leave();assert.equal(sound.active,false);assert.equal(timers.size,1);const fade=[...timers.values()][0];assert.equal(fade.delay,600);timers.clear();fade.fn();await leave;assert.equal(sound.ctx.state,'suspended');
+delete globalThis.AudioContext;const unavailable=new TempleAudio();assert.equal(await unavailable.start(),false);assert.equal(unavailable.available,false);
+console.log('PASS: quiet bell intervals, single scheduler, 5 bounded decaying partials, independent levels, mute cancels ringing, background suspension/resume, return fade and unsupported-audio fallback.');
