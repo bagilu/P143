@@ -1,4 +1,4 @@
-import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.016';
+import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.018';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
 const pins=new Map(),listButtons=new Map();let camera,baseScale=1,width=1,height=1,selected='seaside',saved=null;
 try{saved=JSON.parse(sessionStorage.getItem('p143-world-map-state'));}catch{}
