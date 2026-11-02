@@ -1,23 +1,34 @@
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#273830"><meta name="description" content="挑一張唱片，坐下看海。一間屬於自己的私人 3D 海邊小屋。"><title>海邊小屋 · Quiet Seaside Cabin</title><link rel="stylesheet" href="style.css"><link rel="preload" as="image" href="assets/photo-entry.png"><link rel="preload" as="image" href="assets/photo-sofa.png"></head>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#203d3a">
+<title>自在之所 Somewhere to Be｜自在心圖</title>
+<meta name="description" content="選一處所在，照自己的步調待著。從自在心圖出發，走進海邊小屋；寺院、雪山與城市的想像空間，將陸續展開。">
+<link rel="stylesheet" href="map.css?v=0.012"><link rel="preload" as="image" href="assets/world-map-v0012.png">
+</head>
 <body>
-<canvas id="scene" aria-label="海邊小屋 3D 場景。拖曳轉頭，方向鍵走動，或使用下方按鈕前往。" tabindex="0"></canvas>
-<div class="vignette" aria-hidden="true"></div><div id="fade" aria-hidden="true"></div>
-<header class="hud"><div class="brand">海邊小屋<span>QUIET SEASIDE CABIN</span><small id="mode-badge"></small></div><button id="help-button" class="round" aria-label="操作說明與設定">?</button></header>
-<section id="welcome"><div class="welcome-content"><span class="eyebrow">A LITTLE ROOM OF YOUR OWN</span><h1>把時間，<br>留給自己。</h1><p>挑一張唱片，或只是坐著。<br>窗外的海，會一直在。</p><button id="enter" class="primary" disabled>小屋準備中…</button><span class="welcome-note">私人海邊小屋 · 互動原型 V0.011</span><p id="load-error" role="alert"></p></div></section>
-<div id="hint" class="hint" role="status" aria-live="polite"></div>
-<div id="location" class="location hud">初到小屋<span>拖曳看看四周 · 方向鍵慢慢走</span></div>
-<div id="now-playing" class="now-playing hud" hidden><span class="playing-dot"></span><div><small>唱機上</small><span id="playing-title"></span></div><button id="pause" class="round" aria-label="暫停音樂">Ⅱ</button></div>
-<nav id="dock" class="hud" aria-label="小屋操作"><button id="records-button"><span aria-hidden="true">◉</span>挑張唱片</button><button id="sit-button"><span aria-hidden="true">⌑</span><span id="sit-label">坐下看海</span></button><button id="window-button"><span aria-hidden="true">▱</span>走到窗邊</button><button id="light-button"><span aria-hidden="true">◷</span><span>光景 <small id="light-label">16:00</small></span></button><button id="sound-button"><span aria-hidden="true">≋</span>聲音</button></nav>
-<button id="wake" aria-label="顯示操作" hidden>輕點畫面，喚出操作</button>
-<dialog id="records"><div class="dialog-head"><div><span class="eyebrow">THE RECORD COLLECTION</span><h2>今天，想聽什麼？</h2></div><button class="round close" aria-label="關閉唱片櫃">×</button></div><p class="subtle">三張唱片已備好音樂。按「播放並坐下」，或另選自己的 MP3。</p><div class="record-grid">
-<article class="record" data-track="0"><button class="cover cover-0" data-select="0" aria-label="選擇爵士樂：琥珀時光"></button><span class="genre">JAZZ</span><h3>琥珀時光</h3><p class="english">Amber Hours</p><p class="file-status" id="file-0">預設音樂 · P143-01.mp3</p><div class="record-actions"><button data-play="0" class="play-track">播放</button><button data-load="0" class="load-track">另選音樂</button><button data-reset="0" class="reset-track" hidden>恢復預設</button></div></article>
-<article class="record" data-track="1"><button class="cover cover-1" data-select="1" aria-label="選擇鋼琴獨奏：靜謐琴聲"></button><span class="genre">SOLO PIANO</span><h3>靜謐琴聲</h3><p class="english">Still Keys</p><p class="file-status" id="file-1">預設音樂 · P143-02.mp3</p><div class="record-actions"><button data-play="1" class="play-track">播放</button><button data-load="1" class="load-track">另選音樂</button><button data-reset="1" class="reset-track" hidden>恢復預設</button></div></article>
-<article class="record" data-track="2"><button class="cover cover-2" data-select="2" aria-label="選擇水晶音樂：水晶潮汐"></button><span class="genre">CRYSTAL AMBIENCE</span><h3>水晶潮汐</h3><p class="english">Crystal Tide</p><p class="file-status" id="file-2">預設音樂 · P143-03.mp3</p><div class="record-actions"><button data-play="2" class="play-track">播放</button><button data-load="2" class="load-track">另選音樂</button><button data-reset="2" class="reset-track" hidden>恢復預設</button></div></article>
-</div><p class="privacy">預設音樂由網站提供。您另選的音樂只保存在此瀏覽器，不會上傳；可隨時恢復預設，或停止唱機只聽海浪。</p><div class="dialog-foot"><button id="stop-record" class="text-button">停止唱機</button><button id="records-sit" class="primary">坐下聽聽</button></div><input type="file" id="music-file" accept="audio/*,.mp3" hidden></dialog>
-<dialog id="light"><div class="dialog-head"><div><span class="eyebrow">TIME BY THE SEA</span><h2>讓光，隨時間慢慢流動。</h2></div><button class="round close" aria-label="關閉光景設定">×</button></div><p class="subtle">跟著此刻看海，也可以把時間拉到心之所向。</p><p id="light-current" class="light-current">此刻的光景</p><label class="check light-follow"><input id="light-follow" type="checkbox" checked>跟隨現在 · 裝置當地時間</label><label class="slider-label" for="light-time">選擇時刻<output id="light-time-value">--:--</output></label><input id="light-time" type="range" min="0" max="1439" step="1" value="0" aria-describedby="light-time-note"><div class="time-ticks" aria-hidden="true"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span></div><p id="light-time-note" class="subtle">手動拖曳立即換光，並暫停在選定時刻。勾選「跟隨現在」，光景約用 5 分鐘平順接回此刻。19:00 至翌日 05:00 是星光黑夜。</p><p id="light-status" class="subtle" role="status"></p><div class="dialog-foot"><span class="subtle">每次開啟，都從現在開始。</span><button id="light-sit" class="primary">坐下看海</button></div></dialog>
-<dialog id="sound"><div class="dialog-head"><div><span class="eyebrow">SOUND & SILENCE</span><h2>留一點聲音，也留一點安靜。</h2></div><button class="round close" aria-label="關閉聲音設定">×</button></div><label class="slider-label" for="sea-volume">窗外海浪<output id="sea-value">35%</output></label><input id="sea-volume" type="range" min="0" max="100" value="35"><label class="slider-label" for="music-volume">黑膠音樂<output id="music-value">50%</output></label><input id="music-volume" type="range" min="0" max="100" value="50"><label class="check"><input id="ocean-motion" type="checkbox" checked>海浪與潮汐感</label><label class="slider-label" for="wave-strength">海浪起伏<output id="wave-value">70%</output></label><input id="wave-strength" type="range" min="0" max="100" value="70"><p id="motion-status" class="subtle" aria-live="polite"></p><button id="mute" class="secondary">全部靜音</button><p class="subtle">海浪為合成環境聲，可獨立調整或關閉。</p></dialog>
-<dialog id="help"><div class="dialog-head"><div><span class="eyebrow">MAKE YOURSELF AT HOME</span><h2>自在待著就好。</h2></div><button class="round close" aria-label="關閉操作說明">×</button></div><dl><dt>看看四周</dt><dd>在畫面上按住拖曳；手機用單指拖曳。寫實視景可在有限範圍查看左右上下。</dd><dt>慢慢走</dt><dd>寫實視景：點選位置或下方按鈕換位，方向鍵查看畫面。3D 模型：方向鍵或 WASD 走動，亦可輕點地板前往。</dd><dt>挑張唱片</dt><dd>點選三張封套或唱機，即可播放爵士、鋼琴與水晶預設音樂。也能另選自己的 MP3，或恢復預設。</dd><dt>坐下看海</dt><dd>點沙發或「坐下看海」。操作會在閒置後淡出，輕點畫面即可喚回。按 Esc 關閉面板。</dd></dl><div class="display-settings"><label for="display-mode">畫面模式</label><select id="display-mode"><option value="photo">寫實室內 · 照片質感</option><option value="auto">3D 模型實驗版（裝置支援時）</option><option value="model">實際模型預覽 · 固定視角</option><option value="art">柔和靜景 · 固定視角</option></select><p class="subtle">切換模式會重新進入小屋。</p></div><fieldset class="look-settings"><legend>拖曳查看方向</legend><p id="drag-direction" class="subtle" aria-live="polite">上拖＝往上看；右拖＝往右看</p><label class="check"><input id="invert-look-y" type="checkbox">反轉上下拖曳</label><label class="check"><input id="invert-look-x" type="checkbox">反轉左右拖曳</label></fieldset><label class="check"><input id="reduce-motion" type="checkbox">減少動態與移動動畫</label><div class="settings-actions"><button id="fullscreen" class="secondary">全螢幕</button><button id="return-entry" class="secondary">回到入口</button></div><p class="credits">海邊小屋 · 互動原型 V0.011<br>慈濟大學 · 企業管理學系 · 智慧商情研究室 SBI Lab</p></dialog>
-<script type="module" src="app.js?v=0.011"></script>
+<a class="skip-link" href="#place-list">選擇地點</a>
+<header class="world-header"><a class="wordmark" href="./" aria-label="自在之所首頁">自在之所<span>SOMEWHERE TO BE</span></a><span class="world-edition">P143 <span aria-hidden="true">/</span> V0.012</span></header>
+<main>
+<section class="world-intro" aria-labelledby="world-title"><p class="eyebrow">THE MAP WITHIN</p><h1 id="world-title">自在心圖<span>今天，想去哪裡？</span></h1><p class="intro-copy">選一處所在，<br>照自己的步調待著。</p></section>
+<section id="map-viewport" class="map-viewport" tabindex="0" aria-label="自在心圖：可拖曳、雙指縮放，或使用縮放按鈕探索" aria-describedby="map-guide">
+<div id="map-world" class="map-world">
+<img id="world-image" src="assets/world-map-v0012.png" width="1672" height="941" alt="虛構地域的空拍地景：左側海灣與海邊小屋，中央森林寺院，右上雪山暖屋，以及右下河口城市。" draggable="false" fetchpriority="high">
+<svg class="world-trails" viewBox="0 0 1672 941" aria-hidden="true"><g class="trail-shadow"><path d="M 532 614 C 608 590 640 568 673 534 S 765 479 829 427 M 829 427 C 931 394 995 385 1054 339 S 1245 214 1363 164 M 829 427 C 946 476 1032 501 1095 542 S 1250 636 1364 697"/></g><g class="trail-ink"><path d="M 532 614 C 608 590 640 568 673 534 S 765 479 829 427 M 829 427 C 931 394 995 385 1054 339 S 1245 214 1363 164 M 829 427 C 946 476 1032 501 1095 542 S 1250 636 1364 697"/></g></svg>
+<div id="map-pins" class="map-pins" aria-label="地圖上的自在之所"></div>
+</div>
+<div class="map-controls" role="group" aria-label="地圖縮放"><button id="zoom-in" aria-label="放大地圖">+</button><button id="zoom-out" aria-label="縮小地圖">−</button><button id="map-fit" aria-label="查看全圖"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button></div>
+<p id="map-loading" class="map-loading" role="status">地景準備中…</p>
+</section>
+<nav id="place-list" class="place-list" aria-label="自在之所地點一覽"></nav>
+<aside id="place-card" class="place-card" aria-labelledby="place-name">
+<div class="card-top"><span id="place-kicker" class="eyebrow">01 / 海岸</span><span id="place-status" class="place-status">已開放</span></div>
+<h2 id="place-name">海邊小屋</h2><p id="place-english" class="place-english" lang="en">Quiet Seaside Cabin</p><p id="place-description" class="place-description">挑一張唱片，坐下看海。讓海浪、光線與喜歡的音樂，陪你待一會兒。</p>
+<p id="place-detail" class="place-detail">海浪 · 黑膠音樂 · 十二時段光景</p>
+<a id="place-enter" class="place-enter" href="seaside.html">前往海邊小屋 <span aria-hidden="true">↗</span></a><p id="place-coming" class="place-coming" hidden>籌備中，期待未來在這裡相遇。</p>
+</aside>
+<footer class="world-footer"><p id="map-guide">拖曳探索 · 滾輪或雙指縮放<span>一處已開放，更多所在陸續展開。</span></p><p class="world-credits">慈濟大學 · 企業管理學系<br>智慧商情研究室 SBI Lab</p></footer>
+</main>
+<noscript><div class="noscript">這張互動心圖需要啟用 JavaScript。您也可以<a href="seaside.html">直接前往海邊小屋</a>。</div></noscript>
+<script type="module" src="world-map.js?v=0.012"></script>
 </body></html>

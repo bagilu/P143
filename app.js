@@ -28,7 +28,7 @@ try{if(displayPreference!=='auto')throw new Error('static-choice');renderer=new 
  $('location').querySelector('span').textContent=staticHint();
  const note=document.createElement('p');note.className='subtle';note.textContent=photoMode?'寫實視景採用 AI 生成的照片質感畫面，可在有限範圍拖曳查看，並切換入口、沙發、唱機與窗邊；不提供自由走動。':fallbackMode==='model'?'模型預覽是從網站實際幾何與材質輸出的固定視角；光影為離線近似。可切換位置與聽音樂，自由轉頭與走動需使用即時 3D 模式。':'靜景模式使用美術圖片，可切換位置與聽音樂。自由轉頭與走動需使用即時 3D 模式。';$('help').append(note);
 }
-$('mode-badge').textContent=photoMode?'寫實視景':scenicMode?(fallbackMode==='model'?'模型預覽':'靜景模式'):'即時 3D';
+$('mode-badge').textContent='海邊小屋 · '+(photoMode?'寫實視景':scenicMode?(fallbackMode==='model'?'模型預覽':'靜景模式'):'即時 3D');
 $('display-mode').value=displayPreference;
 if(!scenicMode)$('load-error').textContent='即時 3D 空間 · 可拖曳轉頭、走動與操作唱機。';
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
@@ -62,7 +62,7 @@ let {musicVolume,seaVolume,muted,oceanMotion,waveStrength}=parseSoundSettings(sa
 let elapsed=0,hintTimer,lastActivity=performance.now(),activeTrack=-1;
 const tracks=[{name:'琥珀時光',english:'Amber Hours'},{name:'靜謐琴聲',english:'Still Keys'},{name:'水晶潮汐',english:'Crystal Tide'}].map((track,id)=>({...track,defaultUrl:`Music/P143-0${id+1}.mp3`,url:`Music/P143-0${id+1}.mp3`,file:`P143-0${id+1}.mp3`,custom:false,revision:0}));
 const audio=new Audio();audio.id='record-audio';audio.hidden=true;audio.preload='none';audio.loop=true;audio.volume=musicVolume;document.body.append(audio);
-let audioContext,seaGain,dbPromise;
+let audioContext,seaGain,dbPromise,leavingRoom=false;
 
 function toast(message){$('hint').textContent=message;$('hint').classList.add('visible');clearTimeout(hintTimer);hintTimer=setTimeout(()=>$('hint').classList.remove('visible'),3600);}
 function activity(){lastActivity=performance.now();document.body.classList.remove('hud-hidden');$('wake').hidden=true;}
@@ -301,7 +301,7 @@ function loop(){requestAnimationFrame(loop);const now=performance.now();if(now-l
  oceanMaterial.uniforms.uTime.value=elapsed;
  if(photoMode&&entered&&!document.hidden)photoView.update(elapsed);
  if(!reduced){for(const c of curtains){const pos=c.mesh.geometry.attributes.position;for(let i=0;i<pos.count;i++){const y=c.base[i*3+1];pos.array[i*3+2]=c.base[i*3+2]+Math.sin(elapsed*.65+y*2+i*.03)*.012*(1-(y+1.19)/2.38);}pos.needsUpdate=true;}}
- if(seaGain&&audioContext?.state==='running'){const swell=.62+.22*Math.sin(elapsed*.46)+.12*Math.sin(elapsed*.19);const target=muted?0:seaVolume*.48*swell;seaGain.gain.setTargetAtTime(target,audioContext.currentTime,.25);}
+ if(seaGain&&audioContext?.state==='running'){const swell=.62+.22*Math.sin(elapsed*.46)+.12*Math.sin(elapsed*.19);const target=muted||leavingRoom?0:seaVolume*.48*swell;seaGain.gain.setTargetAtTime(target,audioContext.currentTime,.25);}
  if(seated&&!anyDialog()&&performance.now()-lastActivity>5500){document.body.classList.add('hud-hidden');$('wake').hidden=false;}
  renderer.render(scene,camera);
 }
@@ -309,3 +309,12 @@ loop();
 
 // Small, read-only QA hooks for verifying navigation and player state.
 window.cabinQA={getState:()=>({lighting:{...lightFrame,state:lightFrame.state},entered,seated,scenicMode,activeTrack,playing:!audio.paused,position:camera.position.toArray(),navigation:!!navigation,tracks:tracks.map(t=>({name:t.name,loaded:!!t.url})),reduced,walkable:walkable(camera.position.x,camera.position.z)}),pathTo:name=>{const d=destinations[name];return d?pathTo(d.pos)?.map(p=>p.toArray()):null;}};
+
+// A room belongs to the shared world; leaving fades both music and ambience.
+$('return-map').addEventListener('click',e=>{
+ if(e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+ e.preventDefault();if(leavingRoom)return;leavingRoom=true;closeDialogs();
+ const start=performance.now(),volume=audio.volume,duration=reduced?0:650;
+ const leave=now=>{const t=duration?Math.min(1,(now-start)/duration):1;audio.volume=volume*(1-t);if(t<1)requestAnimationFrame(leave);else{audio.pause();audioContext?.suspend();location.assign($('return-map').href);}};requestAnimationFrame(leave);
+});
+window.addEventListener('pageshow',e=>{if(e.persisted){leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();}});
