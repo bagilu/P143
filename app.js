@@ -15,7 +15,7 @@ if(!['photo','auto','model','art'].includes(displayPreference))displayPreference
 const photoMode=displayPreference==='photo';
 const lightClock=new LightClock();let lightFrame=lightClock.sample();let lastLightTick=-Infinity;
 let renderer,photoView,scenicMode=false,fallbackMode=photoMode?'photo':displayPreference==='art'?'art':'model';
-const staticHint=()=>photoMode?'拖曳查看 · 坐到沙發可廣角環顧':fallbackMode==='model'?'模型預覽 · 使用下方按鈕移動':'靜景模式 · 使用下方按鈕移動';
+const staticHint=()=>photoMode?'拖曳查看 · 點選位置換位':fallbackMode==='model'?'模型預覽 · 使用下方按鈕移動':'靜景模式 · 使用下方按鈕移動';
 try{if(displayPreference!=='auto')throw new Error('static-choice');renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});}catch(e){
  scenicMode=true;
  renderer={setPixelRatio(){},setSize(){},render(){},shadowMap:{},capabilities:{getMaxAnisotropy:()=>1}};
@@ -212,8 +212,8 @@ const destinations={entry:{pos:new THREE.Vector3(-2.18,1.6,1.92),look:new THREE.
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 function scenicView(name){if(photoMode)return photoView.setView(name);if(!scenicMode)return;const svg=$('scenic-view'),img=svg.querySelector('image');if(fallbackMode==='model'){const view=['sofa','entry','records','window'].includes(name)?name:'entry';img.setAttribute('href',`assets/model-${view}.png`);img.setAttribute('width','960');img.setAttribute('height','540');svg.setAttribute('viewBox','0 0 960 540');svg.setAttribute('aria-label',`小屋實際模型預覽：${{sofa:'沙發',entry:'入口',records:'唱機前',window:'窗邊'}[view]}`);return;}if(name==='sofa'){img.setAttribute('href','assets/sofa-view.png');img.setAttribute('width','1672');img.setAttribute('height','941');svg.setAttribute('viewBox','0 0 1672 941');svg.setAttribute('aria-label','坐在沙發看海的靜景畫面');return;}img.setAttribute('href','assets/cabin-views.png');img.setAttribute('width','1536');img.setAttribute('height','1024');const boxes={entry:'0 512 768 512',records:'768 512 768 512',window:'180 25 1150 385'};svg.setAttribute('viewBox',boxes[name]??boxes.entry);svg.setAttribute('aria-label',name==='window'?'窗邊海景的靜景畫面':name==='records'?'唱機前的靜景畫面':'海邊小屋入口的靜景畫面');}
 async function fadeTo(position,look,view){transitioning=true;$('fade').classList.add('active');await delay(reduced?100:440);camera.position.copy(position);lookToward(look);camera.fov=view==='sofa'?SOFA_VIEW.verticalFov:SOFA_VIEW.standingFov;camera.updateProjectionMatrix();if(view)await scenicView(view);await delay(80);$('fade').classList.remove('active');transitioning=false;}
-async function stand(){if(!seated)return;seated=false;syncPanoramaUI();await fadeTo(destinations.sofa.pos,destinations.sofa.look,'entry');$('sit-label').textContent='坐下看海';setLocation('沙發旁',scenicMode?staticHint():'拖曳轉頭 · 輕點地板走動');activity();}
-async function sit(){if(transitioning)return;closeDialogs();navigation=null;keys.clear();if(seated){await stand();return;}await fadeTo(new THREE.Vector3(...SOFA_VIEW.position),new THREE.Vector3(...SOFA_VIEW.target),'sofa');seated=true;syncPanoramaUI();$('sit-label').textContent='起身走走';setLocation('坐在海邊',photoMode?'左右拖曳環顧 · 隨時回正看海':'不必做什麼，就在這裡待著。');activity();}
+async function stand(){if(!seated)return;seated=false;await fadeTo(destinations.sofa.pos,destinations.sofa.look,'entry');$('sit-label').textContent='坐下看海';setLocation('沙發旁',scenicMode?staticHint():'拖曳轉頭 · 輕點地板走動');activity();}
+async function sit(){if(transitioning)return;closeDialogs();navigation=null;keys.clear();if(seated){await stand();return;}await fadeTo(new THREE.Vector3(...SOFA_VIEW.position),new THREE.Vector3(...SOFA_VIEW.target),'sofa');seated=true;$('sit-label').textContent='起身走走';setLocation('坐在海邊',photoMode?'左右拖曳環顧 · 自在看海':'不必做什麼，就在這裡待著。');activity();}
 async function navigate(name,done){if(transitioning)return;closeDialogs();await stand();const dest=destinations[name];if(reduced||scenicMode){await fadeTo(dest.pos,dest.look,name);arrival(name);done?.();return;}const points=pathTo(dest.pos);if(!points){toast('這裡走不過去，試著從家具旁邊繞行。');return;}navigation={points,name,look:dest.look,done};activity();}
 function arrival(name){if(name==='window')setLocation('窗邊','慢慢看海，也可以什麼都不想。');else if(name==='records')setLocation('唱機前','三張唱片，三種心情。');else setLocation('初到小屋',scenicMode?staticHint():'拖曳看看四周 · 方向鍵慢慢走');}
 
@@ -240,8 +240,6 @@ function syncSeaMotion(){const enabled=oceanMotion&&!reduced;if(photoMode){photo
 $('enter').addEventListener('click',()=>{if(entered)return;entered=true;document.body.classList.add('entered');$('welcome').classList.add('leaving');initSea();activity();canvas.focus();toast('歡迎。慢慢看看，這裡沒有需要完成的事。');});
 $('records-button').addEventListener('click',()=>navigate('records',()=>openDialog('records')));
 $('sit-button').addEventListener('click',sit);$('window-button').addEventListener('click',()=>navigate('window'));
-function syncPanoramaUI(){const visible=photoMode&&seated&&photoView?.view==='sofa'&&photoView.scenes.sofa.wideLook;$('panorama-controls').hidden=!visible;if(visible){for(const b of document.querySelectorAll('[data-sofa-look]')){const target={left:.65,sea:0,right:-.65}[b.dataset.sofaLook];b.setAttribute('aria-pressed',String(Math.abs(photoView.yaw-target)<.04));}}}
-document.querySelectorAll('[data-sofa-look]').forEach(b=>b.addEventListener('click',()=>{if(photoMode&&seated){photoView.lookAt(b.dataset.sofaLook,!reduced);activity();}}));
 function syncLightUI(){
  const f=lightFrame,time=formatMinute(f.minute);$('light-label').textContent=time;
  $('light-current').textContent=time+' · '+(f.follow?'跟隨現在':f.label+' · 手動暫停');
@@ -251,7 +249,7 @@ function syncLightUI(){
  $('light-status').textContent=f.transitioning?`正在平順接回現在的光景 · 約 ${Math.max(1,Math.ceil((1-f.progress)*5))} 分鐘後完成。`:f.follow?'跟隨裝置的當地時間，光景以 5 分鐘平順漸變。':'時間已暫停，立即呈現選定光景；海浪與音樂繼續。';
 }
 function tickLight(now=performance.now()){
- lightFrame=lightClock.sample(now);if(photoMode)photoView.setLightState(lightFrame.state,lightFrame.minute);syncLightUI();syncPanoramaUI();
+ lightFrame=lightClock.sample(now);if(photoMode)photoView.setLightState(lightFrame.state,lightFrame.minute);syncLightUI();
 }
 $('light-time').addEventListener('input',e=>{lightClock.select(Number(e.target.value));tickLight();activity();});
 $('light-follow').addEventListener('change',e=>{if(e.target.checked)lightClock.followNow();else lightClock.select(lightFrame.minute);tickLight();activity();});
