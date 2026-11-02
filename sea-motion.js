@@ -34,7 +34,7 @@ export class SeaMotion {
    for(let i=0;i<count;i++){
     const top=b.y+b.height*i/count,height=b.height/count+.12;
     const strip=el('svg',{x:b.x,y:top,width:b.width,height,viewBox:`${b.x} ${top} ${b.width} ${height}`,overflow:'hidden'});
-    const image=el('image',{href:scene.src,width:scene.width,height:scene.height});strip.append(image);this.layer.append(strip);this.rows.push({image,depth:(i+.5)/count});
+    const image=el('image',{href:scene.src,width:scene.width,height:scene.height,preserveAspectRatio:'none'});strip.append(image);this.layer.append(strip);this.rows.push({image,depth:(i+.5)/count});
    }
   }
   this.lastTime=-Infinity;this.refresh();

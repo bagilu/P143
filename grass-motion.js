@@ -13,7 +13,7 @@ export class GrassMotion{
    const fade=el('linearGradient',{id:fadeId,x1:0,y1:0,x2:0,y2:1,gradientUnits:'objectBoundingBox'});
    for(const [offset,opacity] of [[0,0],[.14,1],[.65,1],[1,0]])fade.append(el('stop',{offset,'stop-color':'white','stop-opacity':opacity}));
    const mask=el('mask',{id:maskId,maskUnits:'userSpaceOnUse',...b});mask.append(el('rect',{...b,fill:`url(#${fadeId})`}));this.defs.append(clip,fade,mask);
-   const patch=el('g',{'clip-path':`url(#${clipId})`,mask:`url(#${maskId})`});const image=el('image',{href:scene.src,width:scene.width,height:scene.height});patch.append(image);this.layer.append(patch);this.patches.push({image,...b,root:b.y+b.height,phase:(b.x+b.y)*.013});
+   const patch=el('g',{'clip-path':`url(#${clipId})`,mask:`url(#${maskId})`});const image=el('image',{href:scene.src,width:scene.width,height:scene.height,preserveAspectRatio:'none'});patch.append(image);this.layer.append(patch);this.patches.push({image,...b,root:b.y+b.height,phase:(b.x+b.y)*.013});
   }
   this.lastTime=-Infinity;this.refresh();
  }
