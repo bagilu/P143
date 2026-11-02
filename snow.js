@@ -2,7 +2,7 @@ import {LightClock,formatMinute} from './light-clock.js?v=0.017';
 import {snowLightAtMinute,SNOW_MOMENTS} from './snow-light.js?v=0.018';
 import {SnowView} from './snow-view.js?v=0.018';
 import {SnowAudio} from './snow-audio.js?v=0.018';
-import {SNOW_TRACKS} from './snow-music.js?v=0.018';
+import {SNOW_TRACKS} from './snow-music.js?v=0.019';
 import {readLookSettings,describeLookSettings} from './look-controls.js?v=0.013';
 
 const $=id=>document.getElementById(id),stage=$('snow-stage'),view=new SnowView($('snow-view')),clock=new LightClock(new Date(),snowLightAtMinute),sound=new SnowAudio();
@@ -14,7 +14,7 @@ let wind=level(saved.wind,.03),fire=level(saved.fire,.12),musicVolume=level(save
 let entered=false,quiet=false,leaving=false,pointer=null,lastTick=-Infinity,toastTimer,visibilityRevision=0;
 const audio=new Audio();audio.loop=true;audio.preload='metadata';
 let activeTrack=null,playToken=0,dbPromise,writeQueue=Promise.resolve();
-const tracks=Object.fromEntries(SNOW_TRACKS.map(t=>[t.id,{...t,url:t.defaultSrc,custom:false,filename:t.defaultSrc?'預設音樂':'預設音檔待加入',revision:0}]));
+const tracks=Object.fromEntries(SNOW_TRACKS.map(t=>[t.id,{...t,url:t.defaultSrc,custom:false,filename:t.defaultSrc?t.defaultSrc.split('/').pop():'預設音檔待加入',revision:0}]));
 function toast(text){$('hint').textContent=text;$('hint').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('hint').classList.remove('visible'),4500);}
 function save(){try{localStorage.setItem('p143-snow-settings-v1',JSON.stringify({wind,fire,musicVolume,muted,motion,reduced,...look}));}catch{}}
 function setQuiet(value){quiet=value;document.body.classList.toggle('quiet',value);document.querySelectorAll('.hud').forEach(el=>el.inert=value);$('wake').hidden=!value;if(value)stage.focus({preventScroll:true});}
@@ -60,7 +60,7 @@ $('stop-music').addEventListener('click',()=>stopTrack());
 for(const[id,t]of Object.entries(tracks)){
  $(id+'-file').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!file.type.startsWith('audio/')&&!/\.(mp3|m4a|wav|ogg|flac|aac|opus|webm)$/i.test(file.name)){toast('請選擇 MP3 或其他音訊檔案。');return;}const revision=++t.revision;bindTrack(id,file,file.name);$('track-status').textContent='正在保存音檔…';try{await persistTrack(id,{blob:file,name:file.name});if(t.revision===revision)$('track-status').textContent=activeTrack===id?'正在循環播放'+t.name+'。':'已保存在這個瀏覽器；按播放即可聆聽。';}catch{if(t.revision===revision)$('track-status').textContent='本次可播放；此瀏覽器未能保存音檔。';}});
  $(id+'-play').addEventListener('click',async()=>{if(!t.url)return;if(activeTrack===id){stopTrack();return;}stopTrack();const token=++playToken;activeTrack=id;audio.src=t.url;applySound();updateTracks();try{await audio.play();if(token!==playToken)return;$('track-status').textContent='正在循環播放'+t.name+'。';}catch{if(token!==playToken)return;activeTrack=null;updateTracks();$('track-status').textContent='無法播放此音檔，請換一個音檔再試。';}});
- $(id+'-reset').addEventListener('click',async()=>{const revision=++t.revision;if(activeTrack===id)stopTrack();if(t.custom&&t.url)URL.revokeObjectURL(t.url);t.url=t.defaultSrc;t.custom=false;t.filename=t.defaultSrc?'預設音樂':'預設音檔待加入';updateTracks();try{await persistTrack(id,null);if(t.revision===revision)$('track-status').textContent=t.defaultSrc?'已恢復預設音樂。':'已清除自選音檔。';}catch{if(t.revision===revision)$('track-status').textContent='本次已清除；瀏覽器未能保存變更，下次可能需再次清除。';}});
+ $(id+'-reset').addEventListener('click',async()=>{const revision=++t.revision;if(activeTrack===id)stopTrack();if(t.custom&&t.url)URL.revokeObjectURL(t.url);t.url=t.defaultSrc;t.custom=false;t.filename=t.defaultSrc?t.defaultSrc.split('/').pop():'預設音檔待加入';updateTracks();try{await persistTrack(id,null);if(t.revision===revision)$('track-status').textContent=t.defaultSrc?'已恢復預設音樂。':'已清除自選音檔。';}catch{if(t.revision===revision)$('track-status').textContent='本次已清除；瀏覽器未能保存變更，下次可能需再次清除。';}});
 }
 audio.addEventListener('error',()=>{if(activeTrack){activeTrack=null;updateTracks();$('track-status').textContent='無法讀取此音檔，請重新選擇。';}});
 
