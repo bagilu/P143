@@ -3,32 +3,30 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#203d3a">
 <title>自在之所 Somewhere to Be｜自在心圖</title>
-<meta name="description" content="選一處所在，照自己的步調待著。從自在心圖出發，走進海邊小屋、寂靜寺院或雪山暖屋；都會陽台正在慢慢構築。">
-<link rel="stylesheet" href="map.css?v=0.020"><link rel="preload" as="image" href="assets/world-map-v0012.png">
+<meta name="description" content="選一處所在，照自己的步調待著。從自在心圖出發，走進海邊小屋、寂靜寺院、雪山暖屋或都會陽台。">
+<link rel="stylesheet" href="map.css?v=0.021"><link rel="preload" as="image" href="assets/world-map-v0012.png">
 </head>
 <body>
-<a class="skip-link" href="#place-list">選擇地點</a>
-<header class="world-header"><a class="wordmark" href="./" aria-label="自在之所首頁">自在之所<span>SOMEWHERE TO BE</span></a><span class="world-edition">P143 <span aria-hidden="true">/</span> V0.020</span></header>
+<a class="skip-link" href="#map-pins">選擇地點</a>
+<header class="world-header"><a class="wordmark" href="./" aria-label="自在之所首頁">自在之所<span>SOMEWHERE TO BE</span></a><span class="world-edition">P143 <span aria-hidden="true">/</span> V0.021</span></header>
 <main>
-<section class="world-intro" aria-labelledby="world-title"><p class="eyebrow">THE MAP WITHIN</p><h1 id="world-title">自在心圖<span>今天，想去哪裡？</span></h1><p class="intro-copy">選一處所在，<br>照自己的步調待著。</p></section>
-<section id="map-viewport" class="map-viewport" tabindex="0" aria-label="自在心圖：可拖曳、雙指縮放，或使用縮放按鈕探索" aria-describedby="map-guide">
+<section class="world-intro" aria-labelledby="world-title"><p class="eyebrow">THE MAP WITHIN</p><h1 id="world-title">自在心圖<span>今天，想去哪裡？</span></h1></section>
+<section id="map-viewport" class="map-viewport" tabindex="0" aria-label="自在心圖：可拖曳、雙指縮放，或使用縮放按鈕探索">
 <div id="map-world" class="map-world">
 <img id="world-image" src="assets/world-map-v0012.png" width="1672" height="941" alt="虛構地域的空拍地景：左側海灣與海邊小屋，中央森林寺院，右上雪山暖屋，以及右下河口城市。" draggable="false" fetchpriority="high">
 <svg class="world-trails" viewBox="0 0 1672 941" aria-hidden="true"><g class="trail-shadow"><path d="M 532 614 C 608 590 640 568 673 534 S 765 479 829 427 M 829 427 C 931 394 995 385 1054 339 S 1245 214 1363 164 M 829 427 C 946 476 1032 501 1095 542 S 1250 636 1364 697"/></g><g class="trail-ink"><path d="M 532 614 C 608 590 640 568 673 534 S 765 479 829 427 M 829 427 C 931 394 995 385 1054 339 S 1245 214 1363 164 M 829 427 C 946 476 1032 501 1095 542 S 1250 636 1364 697"/></g></svg>
-<div id="map-pins" class="map-pins" aria-label="地圖上的自在之所"></div>
+<nav id="map-pins" class="map-pins" aria-label="地圖上的自在之所">
+<a class="map-pin" data-place="seaside" href="seaside.html" style="left:31.8%;top:65.2%" aria-label="前往海邊小屋"><span class="pin-label">海邊小屋</span></a>
+<a class="map-pin" data-place="temple" href="temple.html" style="left:49.6%;top:45.3%" aria-label="前往寂靜寺院"><span class="pin-label">寂靜寺院</span></a>
+<a class="map-pin" data-place="snow" href="snow.html" style="left:81.5%;top:17.4%" aria-label="前往雪山暖屋"><span class="pin-label">雪山暖屋</span></a>
+<a class="map-pin" data-place="city" href="balcony.html" style="left:81.6%;top:74.1%" aria-label="前往都會陽台"><span class="pin-label">都會陽台</span></a>
+</nav>
 </div>
 <div class="map-controls" role="group" aria-label="地圖縮放"><button id="zoom-in" aria-label="放大地圖">+</button><button id="zoom-out" aria-label="縮小地圖">−</button><button id="map-fit" aria-label="查看全圖"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button></div>
 <p id="map-loading" class="map-loading" role="status">地景準備中…</p>
 </section>
-<nav id="place-list" class="place-list" aria-label="自在之所地點一覽"></nav>
-<aside id="place-card" class="place-card" aria-labelledby="place-name">
-<div class="card-top"><span id="place-kicker" class="eyebrow">01 / 海岸</span><span id="place-status" class="place-status">已開放</span></div>
-<h2 id="place-name">海邊小屋</h2><p id="place-english" class="place-english" lang="en">Quiet Seaside Cabin</p><p id="place-description" class="place-description">挑一張唱片，坐下看海。讓海浪、光線與喜歡的音樂，陪你待一會兒。</p>
-<p id="place-detail" class="place-detail">海浪 · 黑膠音樂 · 十二時段光景</p>
-<a id="place-enter" class="place-enter" href="seaside.html">前往海邊小屋 <span aria-hidden="true">↗</span></a><p id="place-coming" class="place-coming" hidden>籌備中，期待未來在這裡相遇。</p>
-</aside>
-<footer class="world-footer"><p id="map-guide">拖曳探索 · 滾輪或雙指縮放<span>海邊小屋、寂靜寺院、雪山暖屋已開放。</span></p><p class="world-credits">慈濟大學 · 企業管理學系<br>智慧商情研究室 SBI Lab</p></footer>
+<footer class="world-footer"><p class="world-credits">慈濟大學 · 企業管理學系<br>智慧商情研究室 SBI Lab</p></footer>
 </main>
-<noscript><div class="noscript">這張互動心圖需要啟用 JavaScript。您也可以<a href="seaside.html">直接前往海邊小屋</a>、<a href="temple.html">寂靜寺院</a>或<a href="snow.html">雪山暖屋</a>。</div></noscript>
-<script type="module" src="world-map.js?v=0.018"></script>
+<noscript><div class="noscript">這張互動心圖需要啟用 JavaScript。您也可以<a href="seaside.html">直接前往海邊小屋</a>、<a href="temple.html">寂靜寺院</a>、<a href="snow.html">雪山暖屋</a>或<a href="balcony.html">都會陽台</a>。</div></noscript>
+<script type="module" src="world-map.js?v=0.021"></script>
 </body></html>

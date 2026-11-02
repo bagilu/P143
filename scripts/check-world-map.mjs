@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from '../world-map-model.js';
-assert.equal(PLACES.length,4);assert.equal(PLACES.filter(p=>p.status==='open').length,3);assert.equal(PLACES.filter(p=>p.status==='coming').length,1);
+import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from '../world-map-model.js';
+assert.equal(PLACES.length,4);assert.equal(PLACES.filter(p=>p.status==='open').length,4);assert.equal(PLACES.filter(p=>p.status==='coming').length,0);
 assert.equal(new Set(PLACES.map(p=>p.id)).size,PLACES.length);
 for(const p of PLACES){assert.ok(p.x>0&&p.x<1&&p.y>0&&p.y<1);if(p.status==='open')assert.ok(existsSync(new URL('../'+p.href,import.meta.url)));else assert.equal(p.href,undefined);}
 let checks=0;
@@ -14,4 +14,11 @@ const png=readFileSync(new URL('../assets/world-map-v0012.png',import.meta.url))
 const home=readFileSync(new URL('../index.html',import.meta.url),'utf8'),room=readFileSync(new URL('../seaside.html',import.meta.url),'utf8');assert.ok(home.includes('自在之所')&&home.includes('自在心圖'));assert.ok(home.includes('href="seaside.html"'));assert.ok(!home.includes('src="app.js'));assert.ok(room.includes('id="return-map"')&&room.includes('href="./"'));assert.ok(room.includes('data-play="0"')&&room.includes('id="light-time"'));
 assert.equal(PLACES.find(p=>p.id==='temple').href,'temple.html');
 assert.equal(PLACES.find(p=>p.id==='snow').href,'snow.html');
-console.log(`PASS: 4 destinations / seaside, temple and snow open, photographic asset coordinates, ${checks} camera boundary cases, zoom anchor, mobile whole-map fit, room links and preserved cabin controls.`);
+assert.equal(PLACES.find(p=>p.id==='city').href,'balcony.html');
+assert.equal((home.match(/class="map-pin"/g)||[]).length,4);
+for(const p of PLACES)assert.ok(home.includes(`data-place="${p.id}" href="${p.href}"`));
+for(const id of ['place-list','place-card','map-guide'])assert.ok(!home.includes(`id="${id}"`));
+assert.ok(!home.includes('已開放')&&!home.includes('籌備中'));
+console.log(`PASS: 4 destinations / all four rooms open, four direct links and uncluttered map, photographic asset coordinates, ${checks} camera boundary cases, zoom anchor, mobile whole-map fit, room links and preserved cabin controls.`);
+
+for(const[w,h]of[[390,542],[320,400],[844,260]]){const c=framePlacesCamera(w,h);for(const p of PLACES){const x=c.x+p.x*MAP_SIZE.width*c.scale,y=c.y+p.y*MAP_SIZE.height*c.scale;assert.ok(x>=40&&x<=w-40&&y>=40&&y<=h-40);}}

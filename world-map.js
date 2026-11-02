@@ -1,33 +1,21 @@
-import {MAP_SIZE,PLACES,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.018';
+import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.021';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
-const pins=new Map(),listButtons=new Map();let camera,baseScale=1,width=1,height=1,selected='seaside',saved=null;
+const pins=new Map();let camera,baseScale=1,width=1,height=1,saved=null;
 try{saved=JSON.parse(sessionStorage.getItem('p143-world-map-state'));}catch{}
 for(const place of PLACES){
- const pin=document.createElement('button');pin.type='button';pin.className='map-pin';pin.dataset.place=place.id;pin.dataset.status=place.status;pin.style.left=`${place.x*100}%`;pin.style.top=`${place.y*100}%`;
- pin.setAttribute('aria-label',`${place.name}，${place.status==='open'?'已開放':'籌備中'}`);pin.setAttribute('aria-controls','place-card');
- const label=document.createElement('span');label.className='pin-label';label.textContent=place.name;const status=document.createElement('small');status.textContent=place.status==='open'?'已開放 · 前往':'籌備中';label.append(status);pin.append(label);pin.addEventListener('click',()=>selectPlace(place.id));$('map-pins').append(pin);pins.set(place.id,pin);
- const button=document.createElement('button');button.type='button';button.dataset.place=place.id;button.setAttribute('aria-controls','place-card');button.setAttribute('aria-label',`${place.name}，${place.status==='open'?'已開放':'籌備中'}`);const number=document.createElement('span');number.textContent=place.number;button.append(number,document.createTextNode(place.name));button.addEventListener('click',()=>selectPlace(place.id));$('place-list').append(button);listButtons.set(place.id,button);
+ const pin=document.querySelector(`.map-pin[data-place="${place.id}"]`)||document.createElement('a');pin.className='map-pin';pin.dataset.place=place.id;pin.href=place.href;pin.style.left=`${place.x*100}%`;pin.style.top=`${place.y*100}%`;pin.setAttribute('aria-label',`前往${place.name}`);
+ let label=pin.querySelector('.pin-label');if(!label){label=document.createElement('span');label.className='pin-label';pin.append(label);}label.textContent=place.name;$('map-pins').append(pin);pins.set(place.id,pin);
 }
-function selectPlace(id){
- const place=PLACES.find(p=>p.id===id)||PLACES[0];selected=place.id;
- $('place-kicker').textContent=`${place.number} / ${place.kind}`;$('place-name').textContent=place.name;$('place-english').textContent=place.english;$('place-description').textContent=place.description;$('place-detail').textContent=place.detail;
- const open=place.status==='open';$('place-status').textContent=open?'已開放':'籌備中';$('place-status').classList.toggle('coming',!open);$('place-enter').hidden=!open;$('place-coming').hidden=open;
- if(open){$('place-enter').href=place.href;$('place-enter').firstChild.textContent=`前往${place.name} `;}else $('place-enter').removeAttribute('href');
- for(const p of PLACES){pins.get(p.id).setAttribute('aria-pressed',String(p.id===selected));listButtons.get(p.id).setAttribute('aria-pressed',String(p.id===selected));}
- if(camera)render();
-}
-function saveState(){if(!camera)return;try{sessionStorage.setItem('p143-world-map-state',JSON.stringify({version:1,id:selected,camera,width,height}));}catch{}}
-function render(){world.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`;world.style.setProperty('--pin-scale',1/camera.scale);$('zoom-out').disabled=camera.scale<=baseScale+.00001;$('zoom-in').disabled=camera.scale>=baseScale*4-.00001;viewport.setAttribute('data-map-scale',camera.scale.toFixed(4));avoidCardOverlap();saveState();}
-function avoidCardOverlap(){
- const card=$('place-card').getBoundingClientRect(),bounds=viewport.getBoundingClientRect();
- for(const [id,pin] of pins){const place=PLACES.find(p=>p.id===id),label=pin.querySelector('.pin-label');label.style.left='0px';label.style.top='0px';const r=label.getBoundingClientRect();const overlaps=r.left<card.right+12&&r.right>card.left&&r.top<card.bottom&&r.bottom>card.top;let shift=overlaps?card.right+18-r.left:0,down=0;
- const point={x:bounds.left+camera.x+place.x*MAP_SIZE.width*camera.scale,y:bounds.top+camera.y+place.y*MAP_SIZE.height*camera.scale};
- if(point.x>=bounds.left&&point.x<=bounds.right&&point.y>=bounds.top&&point.y<=bounds.bottom){shift=Math.min(shift,bounds.right-8-r.right);shift=Math.max(shift,bounds.left+8-r.left);if(r.top<bounds.top+8)down=bounds.top+8-r.top;}
- label.style.left=`${shift}px`;label.style.top=`${down}px`;pin.style.setProperty('--label-shift',`${Math.max(0,shift)}px`);pin.dataset.shifted=String(shift>0);
+function saveState(){if(!camera)return;try{sessionStorage.setItem('p143-world-map-state',JSON.stringify({version:3,camera,width,height}));}catch{}}
+function render(){world.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`;world.style.setProperty('--pin-scale',1/camera.scale);$('zoom-out').disabled=camera.scale<=baseScale+.00001;$('zoom-in').disabled=camera.scale>=baseScale*4-.00001;viewport.setAttribute('data-map-scale',camera.scale.toFixed(4));keepLabelsVisible();saveState();}
+function keepLabelsVisible(){
+ const bounds=viewport.getBoundingClientRect();
+ for(const [id,pin] of pins){const place=PLACES.find(p=>p.id===id),label=pin.querySelector('.pin-label');label.style.left='0px';label.style.top='0px';const r=label.getBoundingClientRect();const point={x:bounds.left+camera.x+place.x*MAP_SIZE.width*camera.scale,y:bounds.top+camera.y+place.y*MAP_SIZE.height*camera.scale};
+ if(point.x>=bounds.left&&point.x<=bounds.right&&point.y>=bounds.top&&point.y<=bounds.bottom){label.style.left=`${Math.max(bounds.left+8-r.left,Math.min(0,bounds.right-8-r.right))}px`;label.style.top=`${Math.max(0,bounds.top+8-r.top)}px`;}
  }
 }
-function resize(){const rect=viewport.getBoundingClientRect();width=rect.width;height=rect.height;camera=fitCamera(width,height,matchMedia('(max-width:900px), (max-aspect-ratio:1/1), (max-height:520px)').matches);baseScale=camera.scale;
- if(saved?.version===1&&saved.width===width&&saved.height===height&&saved.camera&&['scale','x','y'].every(k=>Number.isFinite(saved.camera[k]))&&saved.camera.scale>=baseScale&&saved.camera.scale<=baseScale*4){camera=constrainCamera(saved.camera,width,height);}saved=null;render();}
+function resize(){const rect=viewport.getBoundingClientRect();width=rect.width;height=rect.height;const compact=matchMedia('(max-width:900px), (max-aspect-ratio:1/1), (max-height:520px)').matches;camera=fitCamera(width,height,compact);baseScale=camera.scale;if(compact)camera=framePlacesCamera(width,height);
+ if(saved?.version===3&&saved.width===width&&saved.height===height&&saved.camera&&['scale','x','y'].every(k=>Number.isFinite(saved.camera[k]))&&saved.camera.scale>=baseScale&&saved.camera.scale<=baseScale*4){camera=constrainCamera(saved.camera,width,height);}saved=null;render();}
 function zoom(factor,anchor={x:width/2,y:height/2}){camera=zoomCamera(camera,Math.min(baseScale*4,Math.max(baseScale,camera.scale*factor)),anchor,width,height);render();}
 $('zoom-in').addEventListener('click',()=>zoom(1.3));$('zoom-out').addEventListener('click',()=>zoom(1/1.3));$('map-fit').addEventListener('click',()=>{camera=fitCamera(width,height,matchMedia('(max-width:900px), (max-aspect-ratio:1/1), (max-height:520px)').matches);render();});
 viewport.addEventListener('wheel',e=>{if(e.target.closest('.map-controls'))return;e.preventDefault();const rect=viewport.getBoundingClientRect();zoom(Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.003),{x:e.clientX-rect.left,y:e.clientY-rect.top});},{passive:false});
@@ -40,7 +28,7 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])viewport.ad
 viewport.addEventListener('click',e=>{if(performance.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}},true);
 window.addEventListener('blur',()=>{pointers.clear();gesture=null;viewport.classList.remove('dragging');});
 viewport.addEventListener('keydown',e=>{if(e.target!==viewport)return;const shift=55;const moves={ArrowLeft:[shift,0],ArrowRight:[-shift,0],ArrowUp:[0,shift],ArrowDown:[0,-shift]};if(moves[e.key]){e.preventDefault();const [dx,dy]=moves[e.key];camera=constrainCamera({...camera,x:camera.x+dx,y:camera.y+dy},width,height);render();}else if(['+','=','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='Home')$('map-fit').click();else zoom(e.key==='-'?1/1.3:1.3);}});
-const restoredSelection=saved?.id;new ResizeObserver(resize).observe(viewport);resize();selectPlace(restoredSelection||'seaside');
-// The image remains useful if modules fail: its scene link exists in the HTML.
+new ResizeObserver(resize).observe(viewport);resize();
+// Static links remain usable if JavaScript or the map image fails.
 const image=$('world-image');function imageReady(){$('map-loading').hidden=true;viewport.setAttribute('data-map-ready','true');}
-image.addEventListener('load',imageReady);image.addEventListener('error',()=>{$('map-loading').textContent='地景暫時無法載入，仍可從地點一覽選擇自在之所。';});if(image.complete&&image.naturalWidth)imageReady();
+image.addEventListener('load',imageReady);image.addEventListener('error',()=>{$('map-loading').textContent='地景暫時無法載入，仍可點選地點名稱進入。';});if(image.complete&&image.naturalWidth)imageReady();
