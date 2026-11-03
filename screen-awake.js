@@ -1,0 +1,18 @@
+import {ScreenAwakeController} from './screen-awake-controller.js?v=0.031';
+const KEY='p143-screen-awake-v1',body=document.body;
+const readPreference=()=>{try{return JSON.parse(localStorage.getItem(KEY))?.enabled!==false;}catch{return true;}};
+const panel=document.createElement('section');panel.className='companion-settings screen-awake-settings';
+panel.innerHTML='<h3>讓風景陪久一點</h3><label class="check"><input id="keep-screen-awake" type="checkbox" checked>保持螢幕開啟</label><p id="screen-awake-status" class="subtle" role="status" aria-live="polite"></p><button id="screen-awake-retry" class="secondary" hidden>重新嘗試</button><p class="subtle">此設定五個場所共用。只在這個網頁顯示時生效；切換分頁後暫停，回來時會再嘗試開啟。手動鎖定、省電及裝置管理設定仍由系統決定。</p>';
+const help=document.getElementById('help'),actions=help.querySelector('.settings-actions');if(actions)actions.before(panel);else help.append(panel);
+const toggle=document.getElementById('keep-screen-awake'),status=document.getElementById('screen-awake-status'),retry=document.getElementById('screen-awake-retry');toggle.checked=readPreference();
+const messages={idle:'進入場所後，會自動嘗試保持螢幕開啟。',active:'已保持螢幕開啟，可以安心看景、聽音樂。',requesting:'正在請求保持螢幕開啟…',off:'已關閉，螢幕將依裝置設定休息。',paused:'目前暫停；回到這個分頁時會再嘗試開啟。',unsupported:'目前這個網頁環境不支援保持螢幕開啟；仍可正常看景、聽音樂。',blocked:'目前未能保持螢幕開啟，可能受省電或瀏覽器設定影響。',released:'系統已解除保持螢幕開啟，您可以重新嘗試。','release-failed':'尚未能解除保持螢幕開啟；可再試一次，或離開這個分頁。'};
+const supported=isSecureContext&&typeof navigator.wakeLock?.request==='function';
+const controller=new ScreenAwakeController({request:supported?type=>navigator.wakeLock.request(type):null,onState:state=>{body.dataset.screenAwake=state;status.textContent=messages[state];retry.hidden=!['blocked','released','release-failed'].includes(state);}});
+let entered=body.classList.contains('entered');controller.update({enabled:toggle.checked,entered,visible:!document.hidden});
+new MutationObserver(()=>{const next=body.classList.contains('entered');if(next===entered)return;entered=next;controller.update({entered});}).observe(body,{attributes:true,attributeFilter:['class']});
+toggle.addEventListener('change',()=>{try{localStorage.setItem(KEY,JSON.stringify({enabled:toggle.checked}));}catch{}controller.update({enabled:toggle.checked});});
+retry.addEventListener('click',()=>controller.retry());
+document.addEventListener('visibilitychange',()=>controller.update({visible:!document.hidden}));
+window.addEventListener('pagehide',()=>controller.update({pageActive:false}));
+window.addEventListener('pageshow',()=>controller.update({pageActive:true,visible:!document.hidden}));
+window.addEventListener('storage',event=>{if(event.key!==KEY&&event.key!==null)return;toggle.checked=readPreference();controller.update({enabled:toggle.checked});});
