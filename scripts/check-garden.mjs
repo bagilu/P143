@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {GARDEN_SCENE,gardenViewport,initialGardenGaze,GardenView,teaSteamFrame} from '../garden-scene.js';
 import {GARDEN_LIGHTS,gardenLightAtMinute} from '../garden-light.js';
 import {LightClock,FADE_MS,automaticLightAtMinute} from '../light-clock.js';
+import {GARDEN_TRACKS} from '../garden-music.js';
 for(const file of GARDEN_SCENE.plates){const png=readFileSync(new URL('../'+file,import.meta.url));assert.ok(Math.abs(png.readUInt32BE(16)-GARDEN_SCENE.width)<=1);assert.equal(png.readUInt32BE(20),GARDEN_SCENE.height);}
 let checks=0;for(const[w,h]of[[1363,936],[1920,1080],[390,844],[844,390],[320,568]])for(const x of[-1,0,.5,1,2])for(const y of[-1,0,.5,1,2]){const c=gardenViewport(w,h,{x,y});assert.ok(c.x>=0&&c.y>=0&&c.x+c.width<=1672+1e-8&&c.y+c.height<=941+1e-8);assert.ok(Math.abs(c.width/c.height-w/h)<1e-8);checks++;}
 for(const patch of GARDEN_SCENE.foliage)for(const[x,y]of patch)assert.ok(x>=600&&x<=1380&&y>=180&&y<=410,'Motion stays in outdoor pine and bamboo');
@@ -16,4 +17,6 @@ const svg=new Node(),view=new GardenView(svg);assert.equal(await view.load(),tru
 for(let t=0;t<30;t+=.1){const f=teaSteamFrame(t);assert.ok(f.opacity>=0&&f.opacity<=.3);assert.ok(!f.d.includes('NaN'));}
 const original=GARDEN_SCENE.plates[0];GARDEN_SCENE.plates[0]='missing';assert.equal(await view.load(),false);GARDEN_SCENE.plates[0]=original;
 const html=readFileSync(new URL('../garden.html',import.meta.url),'utf8'),js=readFileSync(new URL('../garden.js',import.meta.url),'utf8');assert.ok(html.includes('href="./"')&&html.includes('id="light-follow"')&&html.includes('id="chant-file"')&&html.includes('id="sutra-file"'));assert.ok(js.includes('p143-garden-settings-v1')&&js.includes('p143-garden-audio'));assert.ok(!js.includes('p143-temple-settings-v1')&&!js.includes('p143-temple-audio'));
-console.log(`PASS: aligned photo plates, ${checks} viewport bounds/aspects, light continuity, instant frozen selection, actual-time 300s resume, bounded foliage/tea motion and reduced motion, load failure, isolated music storage and return link.`);
+assert.deepEqual(GARDEN_TRACKS.map(t=>[t.id,t.name,t.filename]),[['chant','松風茶席','P143-51.mp3'],['sutra','雨後晴光','P143-52.mp3'],['bamboo','竹影午後','P143-53.mp3']]);
+for(const t of GARDEN_TRACKS){assert.ok(readFileSync(new URL('../Music/'+t.filename,import.meta.url)).length>1000);assert.ok(html.includes(`id="${t.id}-file"`)&&html.includes(`id="${t.id}-play"`)&&html.includes(t.name)&&html.includes(t.filename));}
+console.log(`PASS: aligned photo plates, ${checks} viewport bounds/aspects, light continuity, instant frozen selection, actual-time 300s resume, bounded foliage/tea motion and reduced motion, load failure, three ordered defaults, preserved legacy music keys and return link.`);
