@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {readingState,paragraphAnchor,anchorScroll,companionFrame,catSpot,CAT_SPOTS} from '../reading-model.js';
+assert.deepEqual(readingState({chapter:-2,paragraph:-6,offset:9,font:500,theme:'unsafe',expanded:'yes'}),{chapter:0,paragraph:0,offset:1,font:30,theme:'paper',expanded:false});
+assert.equal(readingState({chapter:400}).chapter,119);assert.equal(readingState({font:NaN}).font,21);
+const original=[30,230,470,710],a=paragraphAnchor(original,350);assert.equal(a.paragraph,1);assert.equal(a.offset,.5);assert.equal(anchorScroll([50,350,830,1200],a),590,'Position follows the same paragraph after type/layout reflow');
+for(let t=0;t<200;t+=.1){const f=companionFrame(t);assert.ok(f.breath>=.994&&f.breath<=1.006&&f.blink>=0&&f.blink<=1);assert.deepEqual(companionFrame(t,true),{breath:1,blink:0});}
+for(const room of ['garden','temple','snow','balcony','seaside'])for(const compact of [false,true]){const s=catSpot(room,'assets/photo-entry.png',compact);assert.ok(s.x>=0&&s.y>=0&&s.width>0);}
+assert.deepEqual(catSpot('seaside','assets/photo-sofa-wide-day.png'),CAT_SPOTS.sofa);assert.deepEqual(catSpot('seaside','assets/photo-sofa-night.png'),CAT_SPOTS.window);assert.deepEqual(catSpot('seaside','assets/photo-records.png'),CAT_SPOTS.records);
+for(const room of ['seaside','temple','snow','balcony','garden']){const html=readFileSync(new URL('../'+room+'.html',import.meta.url),'utf8');assert.ok(html.includes(`data-place="${room}"`));assert.ok(html.includes('reading.js?v=0.024')&&html.includes('reading.css?v=0.024'));assert.ok(html.includes('V0.024')&&html.includes('id="return-map"'));assert.ok(html.includes('id="light-follow"'));}
+const js=readFileSync(new URL('../reading.js',import.meta.url),'utf8');assert.ok(js.includes('p.textContent=text'),'Book text must not become HTML');assert.ok(js.includes('if(!response.ok)throw')&&js.includes('reading-retry'));assert.ok(js.includes("reader.addEventListener('close',()=>{save();"),'Closed dialog must not recalculate anchors from hidden elements');assert.ok(js.includes('document.hidden')&&js.includes("$('reduce-motion')?.checked"));
+const png=readFileSync(new URL('../assets/companion-black-cat.png',import.meta.url));assert.equal(png.readUInt32BE(16),1774);assert.equal(png.readUInt32BE(20),887);assert.equal(png[25],6,'Companion must retain RGBA transparency');
+console.log('PASS: reader state bounds, paragraph-based position through reflow, five-place integration, photographic coordinate mapping, finite subtle animation, motion pause, safe text rendering, retry and transparent cat.');
