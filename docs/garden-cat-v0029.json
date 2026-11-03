@@ -1,0 +1,16 @@
+{
+  "version": "V0.029",
+  "tool": "built-in image_gen.imagegen",
+  "transparent_background": true,
+  "reference": "assets/companion-black-cat.png",
+  "output": "assets/garden-cat-poses-v0029.png",
+  "dimensions": [
+    1774,
+    887
+  ],
+  "sha256": "afab980402bb6e01e86fc605ed39c29b9adefcfe0c5ea3ea7181cf951e4b47c0",
+  "prompt": "Use case: identity-preserve. Asset type: transparent PNG sprite sheet for a quiet companion cat in a photorealistic Japanese garden website. Use the supplied black cat as identity and pose reference. Create ONE 2 by 2 atlas, four equally sized cells, in a landscape 2:1 image (e.g. 2048 by 1024). Each cell contains the SAME full-body realistic small black domestic shorthair cat at EXACTLY the same scale, position, body silhouette and ground line, body lying left to right, front paws on left, tail curled along the right, seen from slightly above in three-quarter view. Do not crop the ears, paws or tail. Leave 5% transparent padding within every cell. All four cells have identical torso, legs, feet, tail position. Only the head, eyelids and neck vary. Top-left: relaxed resting pose, head upright, drowsy amber eyes looking diagonally toward viewer-left, like reference. Top-right: same body fixed, head gently lifted and turned about 25 degrees toward viewer-right as if looking into garden. Bottom-left: same body fixed, head gently turns toward the camera, soft sleepy gaze at viewer. Bottom-right: exact top-left head and body pose with both eyes fully closed in a natural blink. Real feline anatomy, dense short black fur with individual hairs and soft warm daylight glancing on shoulders, volumetric rounded torso and haunches, subtly visible whiskers and amber eyes, natural asymmetry, no aggressive or startled expression. Photographic quality, not illustration, not polygonal, no toy look, no outlines, no white rim or glow. Transparent background with real alpha, no checkerboard, no scenery, no floor plane, no cushion, no opaque ground shadow, no text or separators. Repeat: 2x2 equal cells, exact same body and baseline in each cell, only head turns or eyes close.",
+  "implementation": "Canvas 2D photographic pose layers, soft head/neck mask, fixed torso/paws/tail, small anchored breathing scale, SVG contact shadow, same photographic scene coordinates and light weights. No runtime 3D rig or generative AI.",
+  "scope": "Garden only; the original companion photo remains as fallback.",
+  "design_note": "A CC BY rigged cat was evaluated locally but rejected because the repose and polygonal appearance did not fit the photographic scene. No downloaded cat model, Three.js loader, Blender file or generated model render is included in this release."
+}
