@@ -5,6 +5,7 @@ const el=(tag,attrs={})=>{const node=document.createElementNS(NS,tag);for(const[
 export const NIGHT_SKIES={
  snow:{count:44,seed:1433,polygon:[[540,150],[1326,36],[1326,101],[1250,115],[1195,96],[1135,115],[1090,100],[1035,132],[990,120],[938,130],[890,116],[836,149],[792,117],[759,128],[712,169],[660,181],[609,171],[540,198]]},
  balcony:{count:30,seed:1434,polygon:[[12,12],[876,12],[933,94],[946,94],[946,218],[815,242],[700,250],[598,245],[500,234],[399,238],[300,220],[210,184],[154,164],[12,136]]},
+ balconyWide:{count:30,seed:1434,polygon:[[12,12],[745,12],[784,70],[810,70],[810,205],[720,223],[600,212],[510,207],[420,197],[340,174],[270,151],[200,132],[140,113],[12,96]]},
  temple:{count:0,seed:1432,polygon:[]}
 };
 export function insideSky(x,y,polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const a=polygon[i],b=polygon[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])inside=!inside;}return inside;}

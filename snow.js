@@ -70,5 +70,5 @@ $('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving
 window.addEventListener('pagehide',()=>{audio.pause();sound.suspend();});
 window.addEventListener('pageshow',e=>{if(e.persisted){leaving=false;$('leave-fade').classList.remove('active');applySound();if(entered)sound.resume();}});
 applyMotion();updateLook();applySound();updateTracks();restoreTracks();tick();
-view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入雪山暖屋';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到心圖。';$('enter').textContent='光景尚未備妥';}});
+view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入雪山暖屋';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
 function loop(now){requestAnimationFrame(loop);if(document.hidden)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);

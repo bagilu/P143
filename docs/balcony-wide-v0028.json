@@ -1,0 +1,31 @@
+{
+  "version": "V0.028",
+  "tool": "built-in image_gen.imagegen",
+  "mode": "precise-object-edit and lighting-weather",
+  "reference": "assets/balcony-day.png",
+  "assets": [
+    {
+      "path": "assets/balcony-wide-day-v0028.png",
+      "width": 2048,
+      "height": 768,
+      "prompt": "Use case: precise-object-edit. Asset type: seamless ultra-wide photographic panorama for an interactive balcony scene. Input image 1 is the EDIT TARGET. Extend its canvas to the RIGHT ONLY into a comfortably furnished living room, as a natural continuation of the existing open sliding glass doorway. Requested output 3072x1152, panoramic 8:3. The original balcony photograph should occupy roughly the LEFT TWO THIRDS at unchanged proportions, with its city rooftops, trees, black railing, concrete column, wicker armchair, green pillow, draped blanket, round wooden table, ceramic cup and open book all preserved in their original relative positions. Keep the same seated eye level and camera position; this is a wider lens view from the same balcony, not a separate camera or collage. In the new right third reveal a warm intimate living room beyond the existing doorway: a cream linen sofa, a small wood coffee table, pale woven rug, warm wood bookshelf and a shaded reading floor lamp. Match the bookshelf/lamp already glimpsed on the far right of the original. The apartment is comfortable, quiet and lived in, without clutter. Natural daytime blue sky and sunlit rooftops outside, soft indirect daylight inside with gentle warm lamp glow. Straight credible architectural lines, realistic threshold and continuous flooring. Keep all objects sharp and photographic with natural material texture; no illustration or synthetic 3D render appearance. No people, pets, vehicles, visible streets, text, borders, split panels or seam. Do not add steam above the cup or stars; these are animated separately by the app. Do not reposition or shrink the original balcony objects to make room: extend the actual scene to the right.",
+      "sha256": "1eda287bb8679d10de9540eb727e141de2d28f4f9f1e259a402502224eeb1c68"
+    },
+    {
+      "path": "assets/balcony-wide-dusk-v0028.png",
+      "width": 2048,
+      "height": 768,
+      "reference": "assets/balcony-wide-day-v0028.png",
+      "prompt": "Use case: lighting-weather. Input image 1 is the EDIT TARGET, a continuous balcony-to-living-room photographic panorama. Change ONLY the time of day to tranquil blue-hour dusk just after sunset. EXACT SAME full composition, 2048x768 ultra-wide 8:3 canvas, same camera, perspective, objects, silhouettes, cup, book, chair, railing, plants, doors, room, sofa, flowers, coffee table, bookshelf and windows, in exactly the same positions and sizes. Sky is soft muted blue fading to pale peach near horizon, no direct sunlight, no harsh sunny patches on the floor. Rooftops have subdued natural dusk tones and a few warm lit windows. Inside the right-hand living room the shaded reading lamp softly illuminates the cream sofa, pale rug and wood bookshelf in warm amber; do not make the entire room orange or overexposed. Cozy and reassuring, realistic photography, natural textures. Do not add stars, moon, people, pets, vehicles, visible streets, steam, text or new objects. Preserve all geometry, change light only.",
+      "sha256": "9add131200bebbb134fe8167de496f0aa96b1fb57ffe2a17af1e767b9e6c0aaa"
+    },
+    {
+      "path": "assets/balcony-wide-night-v0028.png",
+      "width": 2048,
+      "height": 768,
+      "reference": "assets/balcony-wide-day-v0028.png",
+      "prompt": "Use case: lighting-weather. Input image 1 is the EDIT TARGET, a continuous balcony-to-living-room photographic panorama. Change ONLY lighting to a calm deep night at 22:00. EXACT SAME full composition, 2048x768 ultra-wide 8:3 canvas, camera, perspective and ALL object positions/shapes: rooftops, plants, railing, cup, open book, wicker chair, doorway, indoor bookshelf, cream sofa, flowers, coffee table, pale rug and curtains unchanged. Outside the sky is very dark navy blue, nearly black, and roofs/trees are dim silhouettes with restrained blue ambient light and a few warm distant windows. Inside the right-side living room retain a small warm shaded reading lamp, a dim golden pool across the sofa and rug, gentle reflected light along the balcony chair/doorway. The room must feel warmly inhabited yet distinctly dark, no floodlit room, no sunbeams, no bright daylight, no glossy orange glare. Realistic low-light architectural photography with details retained in shadows. No moon or stars (stars are added by app), no people, pets, cars, steam, text or new objects. Preserve all geometry, change light only.",
+      "sha256": "80975c7040a08f2cea1274c8fdfc90f374f555c134809b1363144991bcaa3af7"
+    }
+  ]
+}

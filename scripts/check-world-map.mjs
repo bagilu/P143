@@ -11,7 +11,7 @@ for(const [w,h,compact] of [[1363,936,false],[1920,1080,false],[1024,768,false],
  const z=zoomCamera(fit,fit.scale*2,{x:w/2,y:h/2},w,h);const before=[(w/2-fit.x)/fit.scale,(h/2-fit.y)/fit.scale],after=[(w/2-z.x)/z.scale,(h/2-z.y)/z.scale];assert.ok(Math.abs(before[0]-after[0])<1e-8&&Math.abs(before[1]-after[1])<1e-8);
 }
 const png=readFileSync(new URL('../'+MAP_IMAGE,import.meta.url));assert.ok(Math.abs(png.readUInt32BE(16)-MAP_SIZE.width)<=1);assert.equal(png.readUInt32BE(20),MAP_SIZE.height);
-const home=readFileSync(new URL('../index.html',import.meta.url),'utf8'),room=readFileSync(new URL('../seaside.html',import.meta.url),'utf8');assert.ok(home.includes('自在之所')&&home.includes('自在心圖'));assert.ok(home.includes('href="seaside.html"'));assert.ok(!home.includes('src="app.js'));assert.ok(room.includes('id="return-map"')&&room.includes('href="./"'));assert.ok(room.includes('data-play="0"')&&room.includes('id="light-time"'));
+const home=readFileSync(new URL('../index.html',import.meta.url),'utf8'),room=readFileSync(new URL('../seaside.html',import.meta.url),'utf8');assert.ok(home.includes('<h1 id="world-title">自在之所</h1>')&&!home.includes('自在心圖')&&!home.includes('THE MAP WITHIN'));assert.ok(home.includes('href="seaside.html"'));assert.ok(!home.includes('src="app.js'));assert.ok(room.includes('id="return-map"')&&room.includes('href="./"'));assert.ok(room.includes('data-play="0"')&&room.includes('id="light-time"'));
 assert.equal(PLACES.find(p=>p.id==='temple').href,'temple.html');
 assert.equal(PLACES.find(p=>p.id==='snow').href,'snow.html');
 assert.equal(PLACES.find(p=>p.id==='city').href,'balcony.html');
@@ -36,3 +36,5 @@ assert.equal(PLACES.find(p=>p.id==='garden').href,'garden.html');
 console.log(`PASS: five open destinations and direct links, seven road-following segments with shared junctions, all five places connected, aligned pins/routes, ${checks} camera boundaries, zoom, mobile fit, preserved cabin controls.`);
 
 for(const[w,h]of[[390,542],[320,400],[844,260]]){const c=framePlacesCamera(w,h);for(const p of PLACES){const x=c.x+p.x*MAP_SIZE.width*c.scale,y=c.y+p.y*MAP_SIZE.height*c.scale;assert.ok(x>=40&&x<=w-40&&y>=40&&y<=h-40);}}
+
+for(const page of ['seaside','temple','snow','balcony','garden']){const html=readFileSync(new URL('../'+page+'.html',import.meta.url),'utf8');assert.ok(html.includes('回到地圖')&&!html.includes('回到心圖'));}

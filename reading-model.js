@@ -10,7 +10,7 @@ export const CAT_SPOTS={
  garden:{x:290,y:780,width:210,compact:{x:790,y:692,width:200}},
  temple:{x:470,y:790,width:240,compact:{x:850,y:761,width:215}},
  snow:{x:230,y:650,width:190,compact:{x:610,y:769,width:170}},
- balcony:{x:785,y:800,width:180,compact:{x:844,y:800,width:170}},
+ balcony:{x:685,y:650,width:150,compact:{x:690,y:650,width:145}},
  entry:{x:405,y:675,width:235,compact:{x:640,y:610,width:190}},
  sofa:{x:515,y:583,width:240,compact:{x:820,y:563,width:210}},
  records:{x:310,y:835,width:240,compact:{x:580,y:835,width:200}},
