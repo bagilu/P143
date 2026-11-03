@@ -16,4 +16,9 @@ export const CAT_SPOTS={
  records:{x:310,y:835,width:240,compact:{x:580,y:835,width:200}},
  window:{x:600,y:710,width:230,compact:{x:690,y:710,width:190}}
 };
-export function catSpot(room,source,compact=false){let key=room;if(room==='seaside')key=source.includes('sofa-wide')?'sofa':source.includes('records')?'records':source.includes('photo-sofa.')||source.includes('photo-sofa-')?'window':'entry';const spot=CAT_SPOTS[key];return compact&&spot?.compact?spot.compact:spot;}
+export const CAT_SCALE=.45;
+export function catSpot(room,source,compact=false){let key=room;if(room==='seaside')key=source.includes('sofa-wide')?'sofa':source.includes('records')?'records':source.includes('photo-sofa.')||source.includes('photo-sofa-')?'window':'entry';const base=CAT_SPOTS[key],spot=compact&&base?.compact?base.compact:base;return spot?{...spot,x:spot.x+spot.width*(1-CAT_SCALE)/2,width:spot.width*CAT_SCALE}:undefined;}
+export const spreadStride=(width,gap)=>Math.max(1,width+gap);
+export const spreadCount=(scrollWidth,width,gap)=>Math.max(1,Math.ceil((scrollWidth+gap-.5)/spreadStride(width,gap)));
+export const spreadAt=(x,width,gap,count)=>Math.max(0,Math.min(count-1,Math.floor(Math.max(0,x)/spreadStride(width,gap))));
+export function textChunks(text,size=24){let start=0;const chunks=[];let chunk='';for(const char of text){chunk+=char;if([...chunk].length>=size){chunks.push({text:chunk,start});start+=chunk.length;chunk='';}}if(chunk)chunks.push({text:chunk,start});return chunks;}

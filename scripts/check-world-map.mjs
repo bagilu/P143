@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {MAP_SIZE,MAP_IMAGE,MAP_TRAILS,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from '../world-map-model.js';
+import {MAP_SIZE,MAP_IMAGE,MAP_TRAILS,MAP_JUNCTIONS,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from '../world-map-model.js';
 assert.equal(PLACES.length,5);assert.equal(PLACES.filter(p=>p.status==='open').length,5);assert.equal(PLACES.filter(p=>p.status==='coming').length,0);
 assert.equal(new Set(PLACES.map(p=>p.id)).size,PLACES.length);
 for(const p of PLACES){assert.ok(p.x>0&&p.x<1&&p.y>0&&p.y<1);if(p.status==='open')assert.ok(existsSync(new URL('../'+p.href,import.meta.url)));else assert.equal(p.href,undefined);}
@@ -20,17 +20,19 @@ for(const p of PLACES)assert.ok(home.includes(`data-place="${p.id}" href="${p.hr
 for(const id of ['place-list','place-card','map-guide'])assert.ok(!home.includes(`id="${id}"`));
 assert.ok(!home.includes('已開放')&&!home.includes('籌備中'));
 assert.ok(home.includes(MAP_IMAGE));
-const graph=new Map(PLACES.map(p=>[p.id,[]]));
+const nodes=[...PLACES.map(p=>({...p,x:p.x*MAP_SIZE.width,y:p.y*MAP_SIZE.height})),...MAP_JUNCTIONS];
+const graph=new Map(nodes.map(p=>[p.id,[]]));
+assert.equal(MAP_TRAILS.length,7,'Shared road trunks are drawn once');
 for(const route of MAP_TRAILS){
- const values=route.d.match(/-?\d+(?:\.\d+)?/g).map(Number),from=PLACES.find(p=>p.id===route.from),to=PLACES.find(p=>p.id===route.to);
- for(const [actual,expected]of [[values[0],from.x*MAP_SIZE.width],[values[1],from.y*MAP_SIZE.height],[values.at(-2),to.x*MAP_SIZE.width],[values.at(-1),to.y*MAP_SIZE.height]])assert.ok(Math.abs(actual-expected)<.001);
+ const values=route.d.match(/-?\d+(?:\.\d+)?/g).map(Number),from=nodes.find(p=>p.id===route.from),to=nodes.find(p=>p.id===route.to);
+ for(const [actual,expected]of [[values[0],from.x],[values[1],from.y],[values.at(-2),to.x],[values.at(-1),to.y]])assert.ok(Math.abs(actual-expected)<.001);
  assert.equal(home.split(`data-from="${route.from}" data-to="${route.to}" d="${route.d}"`).length-1,2);
  graph.get(route.from).push(route.to);graph.get(route.to).push(route.from);
 }
-assert.deepEqual(graph.get('temple'),['garden'],'Distant temple must be reached through the former temple/garden site');
-const seen=new Set(),visit=id=>{if(seen.has(id))return;seen.add(id);graph.get(id).forEach(visit);};visit('seaside');assert.equal(seen.size,5);
+assert.deepEqual(graph.get('temple'),['garden-turn']);assert.ok(graph.get('garden-turn').includes('garden'));assert.deepEqual(new Set(graph.get('river-road')),new Set(['west-road','city','snow']));
+const seen=new Set(),visit=id=>{if(seen.has(id))return;seen.add(id);graph.get(id).forEach(visit);};visit('seaside');assert.equal(seen.size,8);
 assert.ok(PLACES.find(p=>p.id==='temple').y<PLACES.find(p=>p.id==='garden').y);
 assert.equal(PLACES.find(p=>p.id==='garden').href,'garden.html');
-console.log(`PASS: five open destinations and direct links, garden-to-distant-temple route, all places connected, aligned pins/routes, ${checks} camera boundaries, zoom, mobile fit, preserved cabin controls.`);
+console.log(`PASS: five open destinations and direct links, seven road-following segments with shared junctions, all five places connected, aligned pins/routes, ${checks} camera boundaries, zoom, mobile fit, preserved cabin controls.`);
 
 for(const[w,h]of[[390,542],[320,400],[844,260]]){const c=framePlacesCamera(w,h);for(const p of PLACES){const x=c.x+p.x*MAP_SIZE.width*c.scale,y=c.y+p.y*MAP_SIZE.height*c.scale;assert.ok(x>=40&&x<=w-40&&y>=40&&y<=h-40);}}
