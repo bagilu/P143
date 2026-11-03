@@ -1,4 +1,4 @@
-import {READING_KEY,COMPANION_KEY,readingState,companionFrame,catSpot,spreadStride,spreadCount,spreadAt,textChunks} from './reading-model.js?v=0.028';
+import {READING_KEY,COMPANION_KEY,readingState,companionFrame,catSpot,spreadStride,spreadCount,spreadAt,textChunks} from './reading-model.js?v=0.030';
 
 const $=id=>document.getElementById(id),room=document.body.dataset.place;
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
