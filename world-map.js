@@ -1,4 +1,5 @@
 import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.025';
+import {startMapLight} from './map-light.js?v=0.033';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
 const pins=new Map();let camera,baseScale=1,width=1,height=1,saved=null;
 try{saved=JSON.parse(sessionStorage.getItem('p143-world-map-state'));}catch{}
@@ -32,3 +33,4 @@ new ResizeObserver(resize).observe(viewport);resize();
 // Static links remain usable if JavaScript or the map image fails.
 const image=$('world-image');function imageReady(){$('map-loading').hidden=true;viewport.setAttribute('data-map-ready','true');}
 image.addEventListener('load',imageReady);image.addEventListener('error',()=>{$('map-loading').textContent='地景暫時無法載入，仍可點選地點名稱進入。';});if(image.complete&&image.naturalWidth)imageReady();
+startMapLight();
