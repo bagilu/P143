@@ -1,0 +1,31 @@
+{
+  "source": "中央氣象署 A-B0062-001",
+  "url": "https://opendata.cwa.gov.tw/opendatadoc/Astronomy/A-B0062-001.pdf",
+  "downloadURL": "https://cwaopendata.s3.ap-northeast-1.amazonaws.com/Astronomy/A-B0062-001.json",
+  "issued": "2025-09-02T14:36:42+08:00",
+  "location": "花蓮縣",
+  "license": "政府資料開放授權條款第1版",
+  "sourceSha256": "b69eacfb503e0d3d8ed41b8e250fac001d043d40c41e686ce068f024a914999d",
+  "samples": [
+    {
+      "date": "2026-03-20",
+      "sunrise": "05:58",
+      "sunset": "18:05"
+    },
+    {
+      "date": "2026-06-21",
+      "sunrise": "05:07",
+      "sunset": "18:44"
+    },
+    {
+      "date": "2026-09-23",
+      "sunrise": "05:42",
+      "sunset": "17:49"
+    },
+    {
+      "date": "2026-12-21",
+      "sunrise": "06:32",
+      "sunset": "17:11"
+    }
+  ]
+}

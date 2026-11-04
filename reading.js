@@ -1,5 +1,6 @@
 import {READING_KEY,COMPANION_KEY,readingState,companionFrame,catSpot,spreadStride,spreadCount,spreadAt,textChunks} from './reading-model.js?v=0.030';
 
+const COMPANION_AVAILABLE=false;
 const $=id=>document.getElementById(id),room=document.body.dataset.place;
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 let state=readingState(read(READING_KEY,{})),book=null,bookPromise=null,loading=false,storageOK=true,restoring=false,scrollTimer;
@@ -12,7 +13,7 @@ reader.innerHTML=`<svg class="reading-book-frame" viewBox="0 0 1600 800" preserv
 <div class="reading-meta"><label><input id="reading-cat" type="checkbox" checked>黑貓陪伴</label><details id="reading-source"><summary>版本與來源</summary><p id="reading-edition">《紅樓夢》· 一百二十回數位文本。正文保留來源字形，供自在閱讀。</p><p id="reading-source-note"></p><p>來源致謝：<a id="reading-source-link" href="books/hongloumeng-source.txt" target="_blank" rel="noopener">紅樓夢數位原文</a> · <span id="reading-source-credit"></span>。<a id="reading-license-link" href="books/hongloumeng-source.txt" target="_blank" rel="noopener">原始文字與使用條件</a></p><p class="reading-license" id="reading-license"></p></details></div><p id="reading-save" class="reading-save" role="status">閱讀位置會保存在這個瀏覽器，五個場所共用。</p></div>`;
 document.body.append(reader);
 const button=document.createElement('button');button.id='reading-button';button.type='button';button.setAttribute('aria-controls','reading');button.setAttribute('aria-expanded','false');button.innerHTML='<span aria-hidden="true">▤</span>拿本書';$('dock').append(button);
-const help=document.createElement('section');help.className='companion-settings';help.innerHTML='<h3>一點陪伴</h3><label class="check"><input id="companion-enabled" type="checkbox" checked>讓黑貓陪著我</label><p class="subtle">牠會安靜趴著，偶爾眨眼。關閉陪伴或啟用減少動態，都可以自在選擇。</p>';$('help').append(help);
+const help=document.createElement('section');help.className='companion-settings';help.innerHTML='<h3>一點陪伴</h3><label class="check"><input id="companion-enabled" type="checkbox" checked>讓黑貓陪著我</label><p class="subtle">牠會安靜趴著，偶爾眨眼。關閉陪伴或啟用減少動態，都可以自在選擇。</p>';help.hidden=!COMPANION_AVAILABLE;$('help').append(help);$('reading-cat').closest('label').hidden=!COMPANION_AVAILABLE;
 const content=$('reading-content'),flow=$('reading-flow');
 let paged=false,spread=0,count=1,gap=0,stride=1,restoreRevision=0,wheelAt=0;
 function capture(){
@@ -57,7 +58,7 @@ $('reading-expand').addEventListener('click',()=>{capture();state.expanded=!stat
 window.addEventListener('resize',()=>{if(reader.open)restore();});$('reading-source').addEventListener('toggle',()=>{if(reader.open)restore();});document.fonts?.ready.then(()=>{if(reader.open)restore();});
 window.addEventListener('pagehide',()=>{if(reader.open){capture();save();}});document.addEventListener('visibilitychange',()=>{if(document.hidden&&reader.open){capture();save();}});
 window.addEventListener('storage',e=>{if(e.key===COMPANION_KEY){companion=read(COMPANION_KEY,{enabled:true});syncCompanion();}});
-function syncCompanion(){for(const id of ['reading-cat','companion-enabled'])$(id).checked=companion.enabled;document.body.dataset.companion=companion.enabled?'on':'off';}
+function syncCompanion(){for(const id of ['reading-cat','companion-enabled'])$(id).checked=companion.enabled;document.body.dataset.companion=COMPANION_AVAILABLE&&companion.enabled?'on':'off';}
 for(const id of ['reading-cat','companion-enabled'])$(id).addEventListener('change',e=>{companion.enabled=e.target.checked;try{localStorage.setItem(COMPANION_KEY,JSON.stringify(companion));}catch{}syncCompanion();});syncCompanion();style();
 
 // The companion lives in photographic scene coordinates, never in screen/HUD space.
@@ -92,4 +93,4 @@ function catLoop(now){
  const reduced=$('reduce-motion')?.checked??matchMedia('(prefers-reduced-motion: reduce)').matches,active=document.body.classList.contains('entered')&&companion.enabled,frame=companionFrame(now/1000,reduced||!active);
  catRoot.dataset.motion=reduced?'paused':'running';catBody.setAttribute('transform',`translate(0 ${871*(1-frame.breath)}) scale(1 ${frame.breath})`);catEyes.setAttribute('opacity',frame.blink.toFixed(4));
 }
-mountCat();
+if(COMPANION_AVAILABLE)mountCat();

@@ -3,7 +3,8 @@ import { SOFA_VIEW, OCEAN_PLATE } from './view-config.js';
 import { applyDragLook, describeLookSettings, readLookSettings } from './look-controls.js?v=0.013';
 import { RoomEnvironment } from './assets/RoomEnvironment.js';
 import { PhotoView } from './photo-view.js?v=0.014';
-import { LightClock,formatMinute } from './light-clock.js';
+import { SolarLightClock as LightClock,formatMinute } from './solar-light-clock.js?v=0.032';
+import {syncSolarUI} from './solar-ui.js?v=0.032';
 import { PHOTO_SCENES } from './photo-scenes.js?v=0.014';
 import { parseSoundSettings } from './sound-settings.js';
 
@@ -241,12 +242,12 @@ $('enter').addEventListener('click',()=>{if(entered)return;entered=true;document
 $('records-button').addEventListener('click',()=>navigate('records',()=>openDialog('records')));
 $('sit-button').addEventListener('click',sit);$('window-button').addEventListener('click',()=>navigate('window'));
 function syncLightUI(){
- const f=lightFrame,time=formatMinute(f.minute);$('light-label').textContent=time;
+ const f=lightFrame,time=formatMinute(f.minute);syncSolarUI(f,lightClock,tickLight);$('light-label').textContent=time;
  $('light-current').textContent=time+' · '+(f.follow?'跟隨現在':f.label+' · 手動暫停');
  if(document.activeElement!==$('light-time'))$('light-time').value=Math.floor(f.minute);
  $('light-time').setAttribute('aria-valuetext',time);$('light-time-value').textContent=time;
  $('light-follow').checked=f.follow;
- $('light-status').textContent=f.transitioning?`正在平順接回現在的光景 · 約 ${Math.max(1,Math.ceil((1-f.progress)*5))} 分鐘後完成。`:f.follow?'跟隨裝置的當地時間，光景以 5 分鐘平順漸變。':'時間已暫停，立即呈現選定光景；海浪與音樂繼續。';
+ $('light-status').textContent=f.transitioning?`正在平順接回現在的光景 · 約 ${Math.max(1,Math.ceil((1-f.progress)*5))} 分鐘後完成。`:f.follow?'跟隨花蓮時間，日出與日落各以一小時平順漸變。':'時間已暫停，立即呈現選定光景；海浪與音樂繼續。';
 }
 function tickLight(now=performance.now()){
  lightFrame=lightClock.sample(now);if(photoMode)photoView.setLightState(lightFrame.state,lightFrame.minute);syncLightUI();
