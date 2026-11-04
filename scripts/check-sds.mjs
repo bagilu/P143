@@ -17,19 +17,19 @@ assert.ok(!secret.test(history),'Secret-like token in Git history');
 assert.ok(!tracked.some(f=>/\.(sql|zip)$/i.test(f)),'New SQL/ZIP needs extra audit');
 const home=readFileSync('index.html','utf8'),garden=readFileSync('garden.html','utf8'),footer=home.match(/<footer[\s\S]*?<\/footer>/)?.[0];
 assert.ok(footer?.includes('慈濟大學 · 經營管理學系 · 好玩實驗室'));
-assert.ok(footer.indexOf('Web Version V0.033')<footer.indexOf('SBI-P-SDS v3.6'));
-assert.ok(home.includes('map.css?v=0.033'));assert.ok(home.includes('world-map.js?v=0.033'));assert.ok(readFileSync('world-map.js','utf8').includes('world-map-model.js?v=0.025'));
-for(const page of ['seaside.html','temple.html','snow.html','balcony.html','garden.html']){const html=readFileSync(page,'utf8');assert.ok(html.includes('reading.css?v=0.025')&&html.includes('reading.js?v=0.032'));assert.ok(html.includes('V0.033'));assert.ok(html.includes('screen-awake.js?v=0.031'));}
+assert.ok(footer.indexOf('Web Version V0.034')<footer.indexOf('SBI-P-SDS v3.6'));
+assert.ok(home.includes('map.css?v=0.034'));assert.ok(home.includes('world-map.js?v=0.034'));assert.ok(readFileSync('world-map.js','utf8').includes('world-map-model.js?v=0.025'));
+for(const page of ['seaside.html','temple.html','snow.html','balcony.html','garden.html']){const html=readFileSync(page,'utf8');assert.ok(html.includes('reading.css?v=0.025')&&html.includes('reading.js?v=0.032'));assert.ok(html.includes('V0.034'));assert.ok(html.includes('screen-awake.js?v=0.031'));}
 assert.ok(readFileSync('reading.js','utf8').includes('reading-model.js?v=0.030'));
 assert.ok(garden.includes('garden.js?v=0.032')&&readFileSync('garden.js','utf8').includes('garden-music.js?v=0.027'));
 assert.ok(existsSync('docs/SBI-P-SDS_v3.6.md'));
 const na='純前端、無 Supabase／資料庫／登入；本次沒有新增相關物件。';
 const rows=[
  ['01','N/A',na],['02','PASS','掃描全部第一方前端 HTML/JS：無 Table/View CRUD、REST 或 GraphQL。'],['03','N/A','無 PostgreSQL 業務資料交換；音檔只存瀏覽器 IndexedDB。'],['04','N/A',na],['05','N/A',na],['06','N/A',na],['07','N/A',na],['08','N/A',na],['09','N/A',na],
- ['10','PASS','無資料庫 sequence；前端與 Git 歷史未發現所檢查的秘密 token 格式。'],['11','N/A','無密碼欄位或登入。'],['12','PASS','追蹤檔與 Git 歷史無正式 config.js；秘密格式掃描通過。無後端設定，config-sample.js 不適用。'],['13','N/A','無 SQL、migration、權限變更或跨專案操作。'],['14','PASS','沿用純前端 GitHub Pages 架構、README、版本紀錄；本次無 ZIP 或海報交付。'],['15','PASS','入口及五個場景均為 V0.033；本版主地圖共用花蓮晨昏時鐘；map.css、world-map.js及map-light.js使用0.033，場所功能模組保持原快取版本。'],['16','PASS','首頁頁尾依序為機構識別、Web Version V0.033、SBI-P-SDS v3.6；桌機與手機目視驗證記錄見下方。'],
+ ['10','PASS','無資料庫 sequence；前端與 Git 歷史未發現所檢查的秘密 token 格式。'],['11','N/A','無密碼欄位或登入。'],['12','PASS','追蹤檔與 Git 歷史無正式 config.js；秘密格式掃描通過。無後端設定，config-sample.js 不適用。'],['13','N/A','無 SQL、migration、權限變更或跨專案操作。'],['14','PASS','沿用純前端 GitHub Pages 架構、README、版本紀錄；本次無 ZIP 或海報交付。'],['15','PASS','入口及五個場景均為 V0.034；本版主地圖加入固定星光與暖燈夜景，沿用花蓮晨昏時鐘；map.css、world-map.js及map-light.js使用0.034，場所功能模組保持原快取版本。'],['16','PASS','首頁頁尾依序為機構識別、Web Version V0.034、SBI-P-SDS v3.6；桌機與手機目視驗證記錄見下方。'],
  ...['17','18','19','20','21','22','23'].map(n=>[n,'N/A','本次為互動網站改版，無海報／展示品交付。'])
 ];
 const baseline=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-const report=`# P143 V0.033 合規與驗證報告\n\n- 採用標準：SBI-P-SDS v3.6（附件原文另存同目錄）\n- 穩定基線：\`${baseline}\`\n- 日期：${new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei'}).format(new Date())}（台灣時間）\n- 審核方式：Codex 自動檢查及瀏覽器人工目視；自動掃描不能證明所有可能的秘密或第三方套件均安全。\n- 範圍：主地圖共用花蓮天文時鐘，以原圖光色呈現一小時晨昏漸變、前景恢復與頁面返回更新。無資料庫、帳號或伺服器。\n- 結果：${rows.filter(r=>r[1]==='PASS').length} PASS、${rows.filter(r=>r[1]==='N/A').length} N/A、0 FAIL。\n\n| 編號 | 結果 | 依據與適用性 |\n|---|---|---|\n${rows.map(([n,s,e])=>`| QA-${n} | ${s} | ${e} |`).join('\n')}\n\n自動檢查：\`node scripts/check-sds.mjs\`。功能驗證與瀏覽器檢查記錄：\`docs/verification-v0033.md\`。原音樂、環境聲、手動即時暫停、五分鐘切回自動銜接、閱讀進度、自選偏好及常亮功能保留。SunCalc 1.9.0使用BSD-2-Clause授權，完整授權隨附，資料抽查來源另存solar-reference-v0032.json。不新增登入或後端。\n`;
-writeFileSync('docs/qa-v0033.md',report);
-console.log(`PASS: SBI-P-SDS v3.6 static audit, ${rows.filter(r=>r[1]==='PASS').length} PASS / ${rows.filter(r=>r[1]==='N/A').length} N/A / 0 FAIL. Report saved to docs/qa-v0033.md.`);
+const report=`# P143 V0.034 合規與驗證報告\n\n- 採用標準：SBI-P-SDS v3.6（附件原文另存同目錄）\n- 穩定基線：\`${baseline}\`\n- 日期：${new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei'}).format(new Date())}（台灣時間）\n- 審核方式：Codex 自動檢查及瀏覽器人工目視；自動掃描不能證明所有可能的秘密或第三方套件均安全。\n- 範圍：主地圖共用花蓮天文時鐘，以固定夜景與原圖呈現一小時晨昏漸變，夜景載入失敗退回深藍光色。無資料庫、帳號或伺服器。\n- 結果：${rows.filter(r=>r[1]==='PASS').length} PASS、${rows.filter(r=>r[1]==='N/A').length} N/A、0 FAIL。\n\n| 編號 | 結果 | 依據與適用性 |\n|---|---|---|\n${rows.map(([n,s,e])=>`| QA-${n} | ${s} | ${e} |`).join('\n')}\n\n自動檢查：\`node scripts/check-sds.mjs\`。功能驗證與瀏覽器檢查記錄：\`docs/verification-v0034.md\`。原音樂、環境聲、手動即時暫停、五分鐘切回自動銜接、閱讀進度、自選偏好及常亮功能保留。SunCalc 1.9.0使用BSD-2-Clause授權，完整授權隨附，資料抽查來源另存solar-reference-v0032.json。不新增登入或後端。\n`;
+writeFileSync('docs/qa-v0034.md',report);
+console.log(`PASS: SBI-P-SDS v3.6 static audit, ${rows.filter(r=>r[1]==='PASS').length} PASS / ${rows.filter(r=>r[1]==='N/A').length} N/A / 0 FAIL. Report saved to docs/qa-v0034.md.`);

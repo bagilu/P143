@@ -14,7 +14,7 @@
 .sds-version{font-variant-numeric:tabular-nums;letter-spacing:.02em}@media(max-height:520px) and (min-aspect-ratio:6/5){.world-footer{bottom:8px}.world-credits{font-size:7px;line-height:1.55}}
 
 /* One project name; the map no longer has a second title. */
-.map-world>img{filter:brightness(var(--map-brightness,1)) saturate(var(--map-saturation,1))}.map-light-wash{position:absolute;inset:0;background:var(--map-wash,transparent);pointer-events:none}.world-light-note{font-size:10px;letter-spacing:.05em;line-height:1.5;margin:12px 0 0;color:#e0e5d8}
+.map-world>img{filter:brightness(var(--map-brightness,1)) saturate(var(--map-saturation,1))}.map-world>.map-night{position:absolute;inset:0;opacity:var(--map-night-opacity,0);filter:none}.map-light-wash{position:absolute;inset:0;background:var(--map-wash,transparent);pointer-events:none}.world-light-note{font-size:10px;letter-spacing:.05em;line-height:1.5;margin:12px 0 0;color:#e0e5d8}
 .world-intro{top:43px}.world-intro h1{margin:0;font-size:47px}.world-english{font-size:9px;letter-spacing:.26em;margin:13px 0 0;color:#e0e5d8}.world-question{font-family:"Noto Serif TC",serif;font-size:19px;letter-spacing:.1em;margin:27px 0 0}
 @media(max-width:900px),(max-aspect-ratio:1/1){.world-intro{top:26px;right:112px}.world-intro h1{font-size:31px;margin:0}.world-english{font-size:8px;letter-spacing:.19em;margin-top:10px}.world-question{font-size:13px;letter-spacing:.07em;margin-top:20px}.map-viewport{inset:163px 0 82px}}
 @media(max-height:740px) and (min-width:901px){.world-intro{top:30px}.world-intro h1{font-size:36px}.world-question{font-size:16px;margin-top:20px}}
