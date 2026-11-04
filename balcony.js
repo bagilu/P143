@@ -80,5 +80,5 @@ function loop(now){requestAnimationFrame(loop);if(document.hidden)return;if(now-
 
 import {unifySoundPanel} from './sound-panel.js?v=0.035';
 unifySoundPanel();
-import {addBalconyPositions} from './balcony-positions.js?v=0.037';
-addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:inside=>{setQuiet(false);document.querySelector('.location').firstChild.textContent=inside?'客廳座位':'樹梢上的陽台';toast(inside?'已到客廳，可拖曳環顧；光景與陽台同步。':'已回到陽台，恢復原本觀看方向。');}});
+import {addBalconyPositions} from './balcony-positions.js?v=0.038';
+addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:id=>{setQuiet(false);const name={balcony:'樹梢上的陽台',living:'客廳座位',kitchen:'餐廚空間'}[id];document.querySelector('.location').firstChild.textContent=name;toast('已到'+name+'，可拖曳環顧；光景與音樂持續。');}});
