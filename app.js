@@ -68,7 +68,7 @@ let audioContext,seaGain,dbPromise,leavingRoom=false;
 function toast(message){$('hint').textContent=message;$('hint').classList.add('visible');clearTimeout(hintTimer);hintTimer=setTimeout(()=>$('hint').classList.remove('visible'),3600);}
 function activity(){lastActivity=performance.now();document.body.classList.remove('hud-hidden');$('wake').hidden=true;}
 function anyDialog(){return !!document.querySelector('dialog[open]');}
-function openDialog(id){activity();keys.clear();navigation=null;const d=$(id);if(!d.open)d.showModal();}
+function openDialog(id){if(id==='records')id='sound';activity();keys.clear();navigation=null;const d=$(id);if(!d.open)d.showModal();}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());activity();}
 
 // The entire room, furniture and all viewpoints share this one world.
@@ -229,8 +229,8 @@ async function resetTrack(id){activity();stopTrackSource(id);releaseTrack(id);Ob
 restoreTracks();
 let fileTarget=0;
 function chooseFile(id){fileTarget=id;$('music-file').value='';$('music-file').click();}
-$('music-file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const id=fileTarget;if(!/^audio\//.test(file.type)&&! /\.(mp3|m4a|wav|ogg|flac|aac)$/i.test(file.name)){toast('請選擇音樂檔，例如 MP3。');return;}bindTrack(id,file,file.name);try{await storeTrack(id,file);toast('音樂已放入唱片；點「播放並坐下」即可聆聽。');}catch{toast('本次可播放；此瀏覽器未能保留檔案，下次需重新選取。');}activity();});
-function updatePlayer(){const playing=activeTrack>=0&&!audio.paused;$('now-playing').hidden=activeTrack<0;$('playing-title').textContent=activeTrack<0?'':tracks[activeTrack].name;$('pause').textContent=playing?'Ⅱ':'▷';$('pause').setAttribute('aria-label',playing?'暫停音樂':'繼續播放');document.querySelectorAll('.record').forEach((e,i)=>{e.classList.toggle('active',i===activeTrack);e.querySelector('.play-track').textContent=i===activeTrack&&playing?'暫停':'播放並坐下';e.querySelector('.load-track').textContent=tracks[i].custom?'更換 MP3':'另選音樂';e.querySelector('.reset-track').hidden=!tracks[i].custom;$('file-'+i).textContent=(tracks[i].custom?'自選音樂 · ':'預設音樂 · ')+tracks[i].file;});label.material.color.set(['#b89755','#e0d9bf','#c3b9d6'][Math.max(0,activeTrack)]);}
+$('music-file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const id=fileTarget;if(!/^audio\//.test(file.type)&&! /\.(mp3|m4a|wav|ogg|flac|aac)$/i.test(file.name)){toast('請選擇音樂檔，例如 MP3。');return;}bindTrack(id,file,file.name);try{await storeTrack(id,file);toast('音樂已放入唱片；點「播放」即可聆聽。');}catch{toast('本次可播放；此瀏覽器未能保留檔案，下次需重新選取。');}activity();});
+function updatePlayer(){const playing=activeTrack>=0&&!audio.paused;$('now-playing').hidden=activeTrack<0;$('playing-title').textContent=activeTrack<0?'':tracks[activeTrack].name;$('pause').textContent=playing?'Ⅱ':'▷';$('pause').setAttribute('aria-label',playing?'暫停音樂':'繼續播放');document.querySelectorAll('.record').forEach((e,i)=>{e.classList.toggle('active',i===activeTrack);e.querySelector('.play-track').textContent=i===activeTrack&&playing?'暫停':'播放';e.querySelector('.load-track').textContent=tracks[i].custom?'更換 MP3':'另選音樂';e.querySelector('.reset-track').hidden=!tracks[i].custom;$('file-'+i).textContent=(tracks[i].custom?'自選音樂 · ':'預設音樂 · ')+tracks[i].file;});label.material.color.set(['#b89755','#e0d9bf','#c3b9d6'][Math.max(0,activeTrack)]);}
 async function playTrack(id,{sitAfter=false}={}){activity();if(!tracks[id].url){toast('先為這張唱片放入您的音樂。');chooseFile(id);return;}try{if(activeTrack===id&&!audio.paused){audio.pause();updatePlayer();return;}if(activeTrack!==id){audio.pause();audio.src=tracks[id].url;activeTrack=id;audio.currentTime=0;}audio.volume=muted?0:musicVolume;await audio.play();updatePlayer();if(sitAfter&&!seated)await sit();}catch{toast('目前無法播放，請再試一次、檢查連線，或另選 MP3。');updatePlayer();}}
 audio.addEventListener('pause',updatePlayer);audio.addEventListener('play',updatePlayer);audio.addEventListener('error',()=>{if(audio.getAttribute('src'))toast('音樂暫時無法播放，請檢查連線、再按播放，或另選 MP3。');});
 function initSea(){try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();if(!seaGain){const buffer=audioContext.createBuffer(1,audioContext.sampleRate*12,audioContext.sampleRate),data=buffer.getChannelData(0);let last=0;for(let i=0;i<data.length;i++){const white=Math.random()*2-1;last=(last+white*.03)/1.03;data[i]=last*3.2;}const source=audioContext.createBufferSource();source.buffer=buffer;source.loop=true;const low=audioContext.createBiquadFilter();low.type='lowpass';low.frequency.value=1700;const high=audioContext.createBiquadFilter();high.type='highpass';high.frequency.value=110;seaGain=audioContext.createGain();seaGain.gain.value=0;source.connect(low).connect(high).connect(seaGain).connect(audioContext.destination);source.start();}audioContext.resume();}catch{toast('目前無法啟動海浪聲，您仍可使用唱機。');}}
@@ -260,7 +260,7 @@ $('sound-button').addEventListener('click',()=>openDialog('sound'));$('help-butt
 $('records-sit').addEventListener('click',sit);$('return-entry').addEventListener('click',()=>navigate('entry'));
 document.querySelectorAll('.close').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
 document.querySelectorAll('dialog').forEach(d=>{d.addEventListener('close',activity);d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();});});
-document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playTrack(Number(b.dataset.play),{sitAfter:true})));
+document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>playTrack(Number(b.dataset.play),{sitAfter:false})));
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>playTrack(Number(b.dataset.select))));
 document.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>resetTrack(Number(b.dataset.reset))));
 document.querySelectorAll('[data-load]').forEach(b=>b.addEventListener('click',()=>chooseFile(Number(b.dataset.load))));
@@ -320,3 +320,6 @@ $('return-map').addEventListener('click',e=>{
  const leave=now=>{const t=duration?Math.min(1,(now-start)/duration):1;audio.volume=volume*(1-t);if(t<1)requestAnimationFrame(leave);else{audio.pause();audioContext?.suspend();location.assign($('return-map').href);}};requestAnimationFrame(leave);
 });
 window.addEventListener('pageshow',e=>{if(e.persisted){leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();}});
+
+import {unifySoundPanel} from './sound-panel.js?v=0.035';
+unifySoundPanel();
