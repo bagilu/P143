@@ -1,3 +1,4 @@
+import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import {SolarLightClock as LightClock,formatMinute} from './solar-light-clock.js?v=0.032';
 import {syncSolarUI} from './solar-ui.js?v=0.032';
 import {templeLightAtMinute,TEMPLE_MOMENTS} from './temple-light.js?v=0.022';
@@ -14,7 +15,7 @@ let wind=level(saved.wind,.1),bells=level(saved.bells,.22),recordingVolume=level
 if(saved.windDefaultVersion!==2&&wind===.18)wind=.1;
 let resumeMusic=false;
 let entered=false,quiet=false,leaving=false,pointer=null,lastTick=-Infinity,toastTimer,visibilityRevision=0;
-const audio=new Audio();audio.loop=true;audio.preload='metadata';
+const audio=createMusicAudio();audio.loop=true;audio.preload='metadata';
 let activeTrack=null,playToken=0,dbPromise,writeQueue=Promise.resolve();
 const tracks={chant:{name:'梵音',url:null,filename:'',revision:0},sutra:{name:'誦經',url:null,filename:'',revision:0}};
 function toast(text){$('hint').textContent=text;$('hint').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('hint').classList.remove('visible'),4500);}
@@ -66,12 +67,17 @@ audio.addEventListener('error',()=>{if(activeTrack){activeTrack=null;updateTrack
 
 $('enter').addEventListener('click',async()=>{if(entered)return;entered=true;document.body.classList.add('entered');$('welcome').classList.add('leaving');stage.focus();applySound();const ok=await sound.start();if(document.hidden)await sound.suspend();if(!ok){$('audio-status').textContent='目前無法啟動環境聲；仍可選擇自己的音檔。';$('bell-test').disabled=true;}else $('audio-status').textContent='可分別調整微風與鐘聲，或將音量設為零。';toast('坐一會兒，山林會陪著你。');});
 document.addEventListener('visibilitychange',async()=>{if(!entered||leaving)return;const revision=++visibilityRevision;if(document.hidden){resumeMusic=!!activeTrack&&!audio.paused;audio.pause();await sound.suspend();}else{if(clock.follow)clock.followNow();tick();await sound.resume();if(revision!==visibilityRevision||document.hidden){if(document.hidden)await sound.suspend();return;}if(activeTrack&&resumeMusic){resumeMusic=false;try{await audio.play();}catch{activeTrack=null;updateTracks();toast('錄音已暫停，可在聲音面板重新播放。');}}}});
-$('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving)return;leaving=true;closeDialogs();$('leave-fade').classList.add('active');const initialVolume=audio.volume,start=performance.now();const fade=now=>{const progress=Math.min(1,(now-start)/600);audio.volume=initialVolume*(1-progress);if(progress<1)requestAnimationFrame(fade);else audio.pause();};requestAnimationFrame(fade);await sound.leave();location.assign($('return-map').href);});
+$('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving)return;leaving=true;closeDialogs();if(worldHost()){sound.suspend();worldHost().showMap();return;}$('leave-fade').classList.add('active');const initialVolume=audio.volume,start=performance.now();const fade=now=>{const progress=Math.min(1,(now-start)/600);audio.volume=initialVolume*(1-progress);if(progress<1)requestAnimationFrame(fade);else audio.pause();};requestAnimationFrame(fade);await sound.leave();location.assign($('return-map').href);});
 window.addEventListener('pagehide',()=>{audio.pause();sound.suspend();});
 window.addEventListener('pageshow',e=>{if(e.persisted){leaving=false;$('leave-fade').classList.remove('active');applySound();if(entered)sound.resume();}});
 applyMotion();updateLook();applySound();updateTracks();restoreTracks();tick();
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入寂靜寺院';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
-function loop(now){requestAnimationFrame(loop);if(document.hidden)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
+function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.035';
+import {unifySoundPanel} from './sound-panel.js?v=0.042';
 unifySoundPanel();
+
+window.addEventListener('p143-room-hide',()=>{leaving=true;closeDialogs();sound.suspend();});
+window.addEventListener('p143-room-resume',()=>{leaving=false;$('leave-fade').classList.remove('active');applySound();updateTracks();if(entered)sound.resume();});
+
+$('enter').addEventListener('click',()=>worldHost()?.entered(window),{capture:true});

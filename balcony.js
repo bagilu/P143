@@ -1,3 +1,4 @@
+import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import {SolarLightClock as LightClock,formatMinute} from './solar-light-clock.js?v=0.032';
 import {syncSolarUI} from './solar-ui.js?v=0.032';
 import {balconyLightAtMinute,BALCONY_MOMENTS} from './balcony-light.js?v=0.022';
@@ -14,7 +15,7 @@ const look=readLookSettings();for(const key of ['invertX','invertY'])if(typeof s
 let wind=level(saved.wind,.06),city=level(saved.city,.03),musicVolume=level(saved.musicVolume,.25),muted=saved.muted===true,motion=saved.motion!==false,reduced=typeof saved.reduced==='boolean'?saved.reduced:reduceMedia.matches;
 let resumeMusic=false;
 let entered=false,quiet=false,leaving=false,pointer=null,lastTick=-Infinity,toastTimer,visibilityRevision=0;
-const audio=new Audio();audio.loop=true;audio.preload='metadata';
+const audio=createMusicAudio();audio.loop=true;audio.preload='metadata';
 let activeTrack=null,playToken=0,dbPromise,writeQueue=Promise.resolve();
 const tracks=Object.fromEntries(BALCONY_TRACKS.map(t=>[t.id,{...t,requestedFilename:t.filename,defaultSrc:null,url:null,custom:false,filename:'預設音樂準備中 · '+t.filename,revision:0}]));
 function toast(text){$('hint').textContent=text;$('hint').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('hint').classList.remove('visible'),4500);}
@@ -51,7 +52,7 @@ window.addEventListener('resize',()=>view.resize());
 
 function openDB(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open('p143-balcony-audio',1);req.onupgradeneeded=()=>req.result.createObjectStore('tracks');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});return dbPromise;}
 function persistTrack(id,value){const operation=writeQueue.catch(()=>{}).then(async()=>{const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction('tracks','readwrite');if(value)tx.objectStore('tracks').put(value,id);else tx.objectStore('tracks').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});});writeQueue=operation;return operation;}
-function updateTracks(){for(const[id,t]of Object.entries(tracks)){$(id+'-name').textContent=t.filename;$(id+'-play').disabled=!t.url;$(id+'-reset').disabled=!t.custom;$(id+'-reset').textContent=t.defaultSrc?'恢復預設':'清除自選';$(id+'-play').textContent=activeTrack===id?'停止':t.url?'播放':'音樂準備中';document.querySelector(`[data-track="${id}"]`).classList.toggle('playing',activeTrack===id);}document.body.dataset.playing=activeTrack||'none';$('now-playing').hidden=!activeTrack;$('playing-title').textContent=tracks[activeTrack]?.name||'';}
+function updateTracks(){for(const[id,t]of Object.entries(tracks)){$(id+'-name').textContent=t.filename;$(id+'-play').disabled=!t.url;$(id+'-reset').disabled=!t.custom;$(id+'-reset').textContent=t.defaultSrc?'恢復預設':'清除自選';$(id+'-play').textContent=activeTrack===id&&!audio.paused?'暫停':t.url?'播放':'音樂準備中';document.querySelector(`[data-track="${id}"]`).classList.toggle('playing',activeTrack===id);}document.body.dataset.playing=activeTrack||'none';$('now-playing').hidden=!activeTrack;$('playing-title').textContent=tracks[activeTrack]?.name||'';}
 function stopTrack(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();activeTrack=null;updateTracks();}
 function bindTrack(id,blob,name){const t=tracks[id];if(activeTrack===id)stopTrack();if(t.custom&&t.url)URL.revokeObjectURL(t.url);t.url=URL.createObjectURL(blob);t.custom=true;t.filename=name;updateTracks();}
 async function restoreTracks(){const revisions=Object.fromEntries(Object.entries(tracks).map(([id,t])=>[id,t.revision]));try{const db=await openDB();await Promise.all(Object.keys(tracks).map(id=>new Promise(resolve=>{const req=db.transaction('tracks').objectStore('tracks').get(id);req.onsuccess=()=>{if(req.result?.blob instanceof Blob&&tracks[id].revision===revisions[id])bindTrack(id,req.result.blob,req.result.name);resolve();};req.onerror=resolve;})));}catch{$('track-status').textContent='此瀏覽器無法保存音檔；仍可在本次停留選擇播放。';}}
@@ -71,14 +72,19 @@ audio.addEventListener('error',()=>{if(activeTrack){activeTrack=null;updateTrack
 
 $('enter').addEventListener('click',async()=>{if(entered)return;entered=true;document.body.classList.add('entered');$('welcome').classList.add('leaving');stage.focus();applySound();const ok=await sound.start();if(document.hidden)await sound.suspend();if(!ok){$('audio-status').textContent='目前無法啟動環境聲；仍可播放音樂。';}else $('audio-status').textContent='微風與城市底聲可分別調整，音樂音量在選曲面板設定。';toast('坐著就好，屋頂與窗燈會陪著你。');});
 document.addEventListener('visibilitychange',async()=>{if(!entered||leaving)return;const revision=++visibilityRevision;if(document.hidden){resumeMusic=!!activeTrack&&!audio.paused;audio.pause();await sound.suspend();}else{if(clock.follow)clock.followNow();tick();await sound.resume();if(revision!==visibilityRevision||document.hidden){if(document.hidden)await sound.suspend();return;}if(activeTrack&&resumeMusic){resumeMusic=false;try{await audio.play();}catch{activeTrack=null;updateTracks();toast('音樂已暫停，可在選曲面板重新播放。');}}}});
-$('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving)return;leaving=true;closeDialogs();$('leave-fade').classList.add('active');const initialVolume=audio.volume,start=performance.now();const fade=now=>{const progress=Math.min(1,(now-start)/600);audio.volume=initialVolume*(1-progress);if(progress<1)requestAnimationFrame(fade);else audio.pause();};requestAnimationFrame(fade);await sound.leave();location.assign($('return-map').href);});
+$('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving)return;leaving=true;closeDialogs();if(worldHost()){sound.suspend();worldHost().showMap();return;}$('leave-fade').classList.add('active');const initialVolume=audio.volume,start=performance.now();const fade=now=>{const progress=Math.min(1,(now-start)/600);audio.volume=initialVolume*(1-progress);if(progress<1)requestAnimationFrame(fade);else audio.pause();};requestAnimationFrame(fade);await sound.leave();location.assign($('return-map').href);});
 window.addEventListener('pagehide',()=>{audio.pause();sound.suspend();});
 window.addEventListener('pageshow',e=>{if(e.persisted){leaving=false;$('leave-fade').classList.remove('active');applySound();if(entered)sound.resume();}});
 applyMotion();updateLook();applySound();updateTracks();restoreTracks();loadDefaults();tick();
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入都會陽台';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
-function loop(now){requestAnimationFrame(loop);if(document.hidden)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
+function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.035';
+import {unifySoundPanel} from './sound-panel.js?v=0.042';
 unifySoundPanel();
 import {addBalconyPositions} from './balcony-positions.js?v=0.040';
 addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:id=>{setQuiet(false);const name={balcony:'樹梢上的陽台',living:'客廳座位',kitchen:'餐廚空間',bedroom:'臥室'}[id];document.querySelector('.location').firstChild.textContent=name;toast('已到'+name+'，可拖曳環顧；光景與音樂持續。');}});
+
+window.addEventListener('p143-room-hide',()=>{leaving=true;closeDialogs();sound.suspend();});
+window.addEventListener('p143-room-resume',()=>{leaving=false;$('leave-fade').classList.remove('active');applySound();updateTracks();if(entered)sound.resume();});
+
+$('enter').addEventListener('click',()=>worldHost()?.entered(window),{capture:true});

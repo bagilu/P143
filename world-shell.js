@@ -1,0 +1,18 @@
+const rooms={seaside:'海邊小屋',temple:'寂靜寺院',snow:'雪山暖屋',balcony:'都會陽台',garden:'松風庭園'};
+const audio=document.createElement('audio');audio.preload='metadata';audio.loop=true;document.body.append(audio);
+const frames=new Map();let visible=null,revision=0;
+const widget=document.createElement('aside');widget.id='world-music';widget.hidden=true;widget.innerHTML='<div><small>隨你回到地圖的旋律</small><span id="world-music-title"></span></div><button id="world-music-toggle" aria-label="暫停音樂">Ⅱ</button>';document.body.append(widget);
+const music={audio,owner:null,ownerWindow:null,title:'',claim(owner,win,src,settings){if(!src)throw new Error('No music source');if(this.owner!==owner||audio.src!==src){audio.pause();this.owner=owner;this.ownerWindow=win;audio.src=src;}audio.volume=settings.volume;audio.loop=settings.loop;audio.preload=settings.preload;}};
+function refresh(){widget.hidden=!!visible||!music.owner||!audio.getAttribute('src');document.getElementById('world-music-title').textContent=music.title||'此刻的音樂';const b=document.getElementById('world-music-toggle');b.textContent=audio.paused?'▷':'Ⅱ';b.setAttribute('aria-label',audio.paused?'繼續播放':'暫停音樂');}
+for(const type of ['play','pause','error','emptied'])audio.addEventListener(type,refresh);
+document.getElementById('world-music-toggle').addEventListener('click',async()=>{try{if(audio.paused)await audio.play();else audio.pause();}catch{document.getElementById('world-music-title').textContent='請再按一次播放，或返回原場所選曲。';}refresh();});
+function notify(frame,event){try{frame.contentWindow.dispatchEvent(new Event(event));}catch{}}
+function showMap(push=true){if(visible)notify(visible,'p143-room-hide');for(const f of frames.values())f.hidden=true;visible=null;document.body.classList.remove('world-room-open');if(push)history.pushState(null,'',location.pathname+location.search);refresh();document.getElementById('map-viewport')?.focus({preventScroll:true});}
+function openRoom(id,push=true){if(!rooms[id])return;if(visible)notify(visible,'p143-room-hide');let f=frames.get(id);if(!f){f=document.createElement('iframe');f.className='world-room';f.title=rooms[id];f.allow='autoplay; fullscreen';f.src=id+'.html?v=0.042';frames.set(id,f);document.body.append(f);}for(const other of frames.values())other.hidden=other!==f;visible=f;document.body.classList.add('world-room-open');if(push)history.pushState(null,'','#room='+id);notify(f,'p143-room-resume');refresh();}
+async function entered(win){if(![...frames.values()].some(f=>f.contentWindow===win))return;const token=++revision,owner=music.owner;
+ if(owner&&music.ownerWindow!==win){const volume=audio.volume;for(let i=1;i<=10;i++){await new Promise(r=>setTimeout(r,20));if(token!==revision||music.owner!==owner)return;audio.volume=volume*(1-i/10);}audio.pause();audio.removeAttribute('src');audio.load();music.owner=null;music.ownerWindow=null;music.title='';}
+ for(const [id,f]of frames){if(f!==visible&&f.contentWindow!==music.ownerWindow){frames.delete(id);f.remove();}}refresh();}
+window.p143World={music,refresh,showMap,entered};
+document.addEventListener('click',e=>{if(e.defaultPrevented||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const a=e.target.closest('a[href]');if(!a)return;const u=new URL(a.href,location.href),id=u.pathname.split('/').pop().replace('.html','');if(u.origin===location.origin&&rooms[id]){e.preventDefault();openRoom(id);}});
+function route(){const id=new URLSearchParams(location.hash.slice(1)).get('room');if(rooms[id])openRoom(id,false);else showMap(false);}
+window.addEventListener('popstate',route);route();

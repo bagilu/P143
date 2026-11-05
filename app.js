@@ -1,3 +1,4 @@
+import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import * as THREE from './assets/three.module.js';
 import { SOFA_VIEW, OCEAN_PLATE } from './view-config.js';
 import { applyDragLook, describeLookSettings, readLookSettings } from './look-controls.js?v=0.013';
@@ -62,7 +63,7 @@ let {musicVolume,seaVolume,muted,oceanMotion,waveStrength}=parseSoundSettings(sa
 let grassMotion=true;try{grassMotion=localStorage.getItem('cabin-grass-motion')!=='false';}catch{}
 let elapsed=0,hintTimer,lastActivity=performance.now(),activeTrack=-1;
 const tracks=[{name:'琥珀時光',english:'Amber Hours'},{name:'靜謐琴聲',english:'Still Keys'},{name:'水晶潮汐',english:'Crystal Tide'}].map((track,id)=>({...track,defaultUrl:`Music/P143-0${id+1}.mp3`,url:`Music/P143-0${id+1}.mp3`,file:`P143-0${id+1}.mp3`,custom:false,revision:0}));
-const audio=new Audio();audio.id='record-audio';audio.hidden=true;audio.preload='none';audio.loop=true;audio.volume=musicVolume;document.body.append(audio);
+const audio=createMusicAudio();audio.id='record-audio';audio.hidden=true;audio.preload='none';audio.loop=true;audio.volume=musicVolume;if(audio instanceof Node)document.body.append(audio);
 let audioContext,seaGain,dbPromise,leavingRoom=false;
 
 function toast(message){$('hint').textContent=message;$('hint').classList.add('visible');clearTimeout(hintTimer);hintTimer=setTimeout(()=>$('hint').classList.remove('visible'),3600);}
@@ -315,11 +316,16 @@ window.cabinQA={getState:()=>({lighting:{...lightFrame,state:lightFrame.state},e
 // A room belongs to the shared world; leaving fades both music and ambience.
 $('return-map').addEventListener('click',e=>{
  if(e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
- e.preventDefault();if(leavingRoom)return;leavingRoom=true;closeDialogs();
+ e.preventDefault();if(leavingRoom)return;leavingRoom=true;closeDialogs();if(worldHost()){audioContext?.suspend();worldHost().showMap();return;}
  const start=performance.now(),volume=audio.volume,duration=reduced?0:650;
  const leave=now=>{const t=duration?Math.min(1,(now-start)/duration):1;audio.volume=volume*(1-t);if(t<1)requestAnimationFrame(leave);else{audio.pause();audioContext?.suspend();location.assign($('return-map').href);}};requestAnimationFrame(leave);
 });
 window.addEventListener('pageshow',e=>{if(e.persisted){leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();}});
 
-import {unifySoundPanel} from './sound-panel.js?v=0.035';
+import {unifySoundPanel} from './sound-panel.js?v=0.042';
 unifySoundPanel();
+
+window.addEventListener('p143-room-hide',()=>{leavingRoom=true;closeDialogs();audioContext?.suspend();});
+window.addEventListener('p143-room-resume',()=>{leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();});
+
+$('enter').addEventListener('click',()=>worldHost()?.entered(window),{capture:true});
