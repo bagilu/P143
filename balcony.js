@@ -40,9 +40,9 @@ reduceMedia.addEventListener('change',e=>{let explicit=false;try{explicit=typeof
 $('reset-view').addEventListener('click',()=>{view.reset();closeDialogs();});
 $('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
 
-stage.addEventListener('pointerdown',e=>{if(!entered||leaving||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;pointer={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,wakeOnly:quiet};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');stage.focus({preventScroll:true});});
+stage.addEventListener('pointerdown',e=>{if(!entered||leaving||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;view.beginEdge?.();pointer={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,wakeOnly:quiet};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');stage.focus({preventScroll:true});});
 stage.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)return;if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>6)pointer.moved=true;if(pointer.moved)view.drag(e.clientX-pointer.lastX,e.clientY-pointer.lastY,look);pointer.lastX=e.clientX;pointer.lastY=e.clientY;});
-function release(e){if(!pointer||pointer.id!==e.pointerId)return;const wake=pointer.wakeOnly&&!pointer.moved;pointer=null;stage.classList.remove('dragging');if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);if(wake)setQuiet(false);}
+function release(e){if(!pointer||pointer.id!==e.pointerId)return;const wake=pointer.wakeOnly&&!pointer.moved;view.endEdge?.(e.type!=='pointerup'||pointer.wakeOnly);pointer=null;stage.classList.remove('dragging');if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);if(wake)setQuiet(false);}
 for(const type of ['pointerup','pointercancel','lostpointercapture'])stage.addEventListener(type,release);
 stage.addEventListener('keydown',e=>{const moves={ArrowLeft:[-45,0],ArrowRight:[45,0],ArrowUp:[0,-55],ArrowDown:[0,55]};if(!entered)return;if(moves[e.key]){e.preventDefault();view.drag(...moves[e.key],{invertX:false,invertY:false});}else if(e.key==='Home'){e.preventDefault();view.reset();}});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&quiet)setQuiet(false);});
@@ -80,5 +80,5 @@ function loop(now){requestAnimationFrame(loop);if(document.hidden)return;if(now-
 
 import {unifySoundPanel} from './sound-panel.js?v=0.035';
 unifySoundPanel();
-import {addBalconyPositions} from './balcony-positions.js?v=0.039';
+import {addBalconyPositions} from './balcony-positions.js?v=0.040';
 addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:id=>{setQuiet(false);const name={balcony:'樹梢上的陽台',living:'客廳座位',kitchen:'餐廚空間',bedroom:'臥室'}[id];document.querySelector('.location').firstChild.textContent=name;toast('已到'+name+'，可拖曳環顧；光景與音樂持續。');}});

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import {edgeStep,EDGE_THRESHOLD} from '../balcony-edge.js';
+const step=(state,args)=>edgeStep(state,{gaze:1,dx:50,dy:0,invertX:false,width:1000,index:1,...args});
+assert.equal(step({pull:0},{gaze:.5}).pull,0);
+let s=step({pull:0},{});assert.ok(s.pull<EDGE_THRESHOLD);s=step(s,{});assert.ok(s.pull>=EDGE_THRESHOLD);
+assert.equal(step(s,{dx:-20}).pull,0);
+assert.equal(step({pull:0},{gaze:.99,dx:50}).pull,40.000000000000036);
+assert.ok(step({pull:0},{dx:-100,invertX:true}).pull>=EDGE_THRESHOLD);
+assert.ok(step({pull:0},{gaze:0,dx:-100}).pull<=-EDGE_THRESHOLD);
+assert.equal(step({pull:0},{index:3,dx:150}).pull,0);
+assert.equal(step({pull:0},{index:0,gaze:0,dx:-150}).pull,0);
+assert.equal(step(s,{dy:150}).pull,0);
+console.log('PASS: interior pan, extra edge distance, threshold, reversed controls, inward reset, vertical rejection and terminal boundaries.');
