@@ -12,7 +12,7 @@ for(const scene of ['snow','balcony','garden','temple']){
  assert.ok(source.includes('activeTrack&&resumeMusic'),scene+' preserves user pause on visibility restore');
 }
 for(const scene of ['seaside','snow','balcony','garden','temple']){
- const html=readFileSync(scene+'.html','utf8');assert.ok(html.includes('sound-panel.css?v=0.042'));
+ const html=readFileSync(scene+'.html','utf8');assert.ok(html.includes('sound-panel.css?v=0.044'));
  const js=readFileSync(scene==='seaside'?'app.js':scene+'.js','utf8');assert.ok(js.includes('unifySoundPanel();'));
 }
 console.log('PASS: four audio controllers pause/resume at retained position, visibility restore respects pause, all five scenes load shared panel.');

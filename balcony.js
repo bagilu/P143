@@ -79,7 +79,7 @@ applyMotion();updateLook();applySound();updateTracks();restoreTracks();loadDefau
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入都會陽台';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
 function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.042';
+import {unifySoundPanel} from './sound-panel.js?v=0.044';
 unifySoundPanel();
 import {addBalconyPositions} from './balcony-positions.js?v=0.040';
 addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:id=>{setQuiet(false);const name={balcony:'樹梢上的陽台',living:'客廳座位',kitchen:'餐廚空間',bedroom:'臥室'}[id];document.querySelector('.location').firstChild.textContent=name;toast('已到'+name+'，可拖曳環顧；光景與音樂持續。');}});

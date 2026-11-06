@@ -1,3 +1,4 @@
+import {MUSIC_CATALOG} from './music-catalog.js?v=0.044';
 // Move existing controls so their audio, persistence and file handlers stay intact.
 export function unifySoundPanel(){
  const $=id=>document.getElementById(id),panel=$('sound');
@@ -34,7 +35,7 @@ export function unifySoundPanel(){
  }
  for(const card of music.querySelectorAll('.record,.music-card,.track')){
   const controls=card.querySelector('.record-actions,.track-actions');if(!controls)continue;
-  const details=document.createElement('details');details.className='track-options';const summary=document.createElement('summary');summary.textContent='⋯';summary.setAttribute('aria-label','曲目選項');details.append(summary);
+  const details=document.createElement('details');details.className='track-options';const summary=document.createElement('summary');summary.textContent='⋯ 曲目選項';summary.setAttribute('aria-label','曲目選項');details.append(summary);
   for(const control of [...controls.children])if(control.matches('label,.load-track,.reset-track,[id$="-reset"]'))details.append(control);
   controls.append(details);
  }
@@ -44,22 +45,35 @@ export function unifySoundPanel(){
  }
  const coverStates=[];
  const scene=location.pathname.split('/').pop().replace('.html','');
- const images={seaside:['assets/photo-entry.png','assets/photo-sofa.png','assets/photo-records.png'],snow:['assets/snow-wide-day.png','assets/snow-wide-warm.png','assets/snow-wide-night.png'],balcony:['assets/balcony-wide-day-v0028.png','assets/balcony-wide-dusk-v0028.png','assets/balcony-wide-night-v0028.png'],garden:['assets/garden-day.png','assets/garden-warm.png','assets/garden-night.png'],temple:['assets/temple-day.png','assets/temple-morning.png','assets/temple-night.png']};
- for(const [index,card]of [...music.querySelectorAll('.record,.music-card,.track')].entries()){
+ const cards=[...music.querySelectorAll('.record,.music-card,.track')];
+ const grid=music.querySelector('.music-grid,.record-grid')||document.createElement('div');
+ grid.classList.add('album-grid');
+ if(!grid.parentNode)music.querySelector('p').after(grid);
+ for(const [index,card]of cards.entries()){
   const play=card.querySelector('[id$="-play"],.play-track');if(!play)continue;play.hidden=true;
-  const old=card.querySelector('.cover,.music-cover');let cover=old;
-  const native=old?.tagName==='BUTTON';
-  if(!native){cover=document.createElement('button');cover.type='button';cover.className=(old?.className||'music-cover')+' image-play';if(old){while(old.firstChild)cover.append(old.firstChild);old.replaceWith(cover);}else card.prepend(cover);cover.addEventListener('click',()=>play.click());}
-  cover.classList.add('image-play');cover.style.backgroundImage=`url("${(images[scene]||images.seaside)[index%3]}")`;
-  const title=card.querySelector('h3,strong,.music-cover span')?.textContent||['音樂一','音樂二','音樂三'][index];
-  const badge=document.createElement('span');badge.className='cover-play-symbol';badge.setAttribute('aria-hidden','true');cover.append(badge);
-  coverStates.push({cover,play,title,badge});
+  const meta=MUSIC_CATALOG[scene]?.[index];if(!meta)continue;
+  const controls=card.querySelector('.record-actions,.track-actions');
+  const status=card.querySelector('.file-status,.filename,[id$="-name"]');
+  const cover=document.createElement('button');cover.type='button';cover.className='album-card-play';
+  const art=document.createElement('span');art.className='album-art';art.setAttribute('aria-hidden','true');
+  if(scene==='seaside')art.classList.add('original-album','original-album-'+index);
+  else art.style.backgroundImage=`url("assets/music-covers/${scene}-${index+1}.jpg")`;
+  const badge=document.createElement('span');badge.className='cover-play-symbol';badge.setAttribute('aria-hidden','true');art.append(badge);
+  const copy=document.createElement('span');copy.className='album-copy';
+  for(const [className,text] of [['album-genre',meta.genre],['album-title',meta.name],['album-english',meta.english],['album-description',meta.description]]){
+   if(!text)continue;const line=document.createElement('span');line.className=className;line.textContent=text;if(className==='album-english')line.lang='en';copy.append(line);
+  }
+  if(status){status.classList.add('album-file');copy.append(status);}
+  cover.append(art,copy);cover.addEventListener('click',()=>play.click());
+  card.replaceChildren(cover,controls);card.classList.add('album-card');grid.append(card);
+  coverStates.push({cover,play,title:meta.name,badge});
  }
- function syncCovers(){for(const {cover,play,title,badge}of coverStates){const playing=play.textContent.startsWith('暫停');if(cover.disabled!==play.disabled)cover.disabled=play.disabled;const text=playing?'Ⅱ':'▶';if(badge.textContent!==text)badge.textContent=text;const label=(play.disabled?'請先另選音檔：':playing?'暫停：':'播放：')+title;if(cover.getAttribute('aria-label')!==label)cover.setAttribute('aria-label',label);cover.setAttribute('aria-pressed',String(playing));}}
+ function syncCovers(){for(const {cover,play,title,badge}of coverStates){const playing=play.textContent.startsWith('暫停');if(cover.disabled!==play.disabled)cover.disabled=play.disabled;const text=playing?'Ⅱ':'▶';if(badge.textContent!==text)badge.textContent=text;const label=(play.disabled?'音樂準備中，可另選音檔：':playing?'暫停：':'播放：')+title;if(cover.getAttribute('aria-label')!==label)cover.setAttribute('aria-label',label);cover.setAttribute('aria-pressed',String(playing));}}
  new MutationObserver(syncCovers).observe(music,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['disabled']});syncCovers();
- const now=$('now-playing'),button=$('stop-music')||$('pause');
+ const button=$('stop-music')||$('pause');
  const sync=()=>{const active=music.querySelector('.playing,.record.active');const play=active?.querySelector('[id$="-play"],.play-track');const playing=play?.textContent.startsWith('暫停');if(button){button.textContent=playing?'Ⅱ':'▷';button.setAttribute('aria-label',playing?'暫停音樂':'繼續播放');}};
  new MutationObserver(sync).observe(music,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});sync();
+ for(const intro of [...music.querySelectorAll(':scope > .subtle')])if(intro!==music.querySelector('p')&&!intro.id&&!intro.classList.contains('note'))intro.remove();
  for(const note of music.querySelectorAll('.note'))note.textContent=note.textContent.replace(/重新進入[^。]*不會自動播放。/,'音樂會隨你回到地圖，進入其他場所才停止。');
  if($('records-sit'))$('records-sit').hidden=true;
 }

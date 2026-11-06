@@ -322,7 +322,7 @@ $('return-map').addEventListener('click',e=>{
 });
 window.addEventListener('pageshow',e=>{if(e.persisted){leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();}});
 
-import {unifySoundPanel} from './sound-panel.js?v=0.042';
+import {unifySoundPanel} from './sound-panel.js?v=0.044';
 unifySoundPanel();
 
 window.addEventListener('p143-room-hide',()=>{leavingRoom=true;closeDialogs();audioContext?.suspend();});

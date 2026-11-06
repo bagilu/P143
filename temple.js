@@ -1,3 +1,4 @@
+import {TEMPLE_TRACKS,resolveTempleDefault} from './temple-music.js?v=0.044';
 import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import {SolarLightClock as LightClock,formatMinute} from './solar-light-clock.js?v=0.032';
 import {syncSolarUI} from './solar-ui.js?v=0.032';
@@ -17,7 +18,7 @@ let resumeMusic=false;
 let entered=false,quiet=false,leaving=false,pointer=null,lastTick=-Infinity,toastTimer,visibilityRevision=0;
 const audio=createMusicAudio();audio.loop=true;audio.preload='metadata';
 let activeTrack=null,playToken=0,dbPromise,writeQueue=Promise.resolve();
-const tracks={chant:{name:'梵音',url:null,filename:'',revision:0},sutra:{name:'誦經',url:null,filename:'',revision:0}};
+const tracks=Object.fromEntries(TEMPLE_TRACKS.map(t=>[t.id,{...t,defaultSrc:null,url:null,custom:false,filename:'音樂準備中 · '+t.filename,revision:0}]));
 function toast(text){$('hint').textContent=text;$('hint').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('hint').classList.remove('visible'),4500);}
 function save(){try{localStorage.setItem('p143-temple-settings-v1',JSON.stringify({windDefaultVersion:2,wind,bells,recordingVolume,muted,foliage,reduced,...look}));}catch{}}
 function setQuiet(value){quiet=value;document.body.classList.toggle('quiet',value);document.querySelectorAll('.hud').forEach(el=>el.inert=value);$('wake').hidden=!value;if(value)stage.focus({preventScroll:true});}
@@ -53,15 +54,24 @@ window.addEventListener('resize',()=>view.resize());
 
 function openDB(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open('p143-temple-audio',1);req.onupgradeneeded=()=>req.result.createObjectStore('tracks');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});return dbPromise;}
 function persistTrack(id,value){const operation=writeQueue.catch(()=>{}).then(async()=>{const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction('tracks','readwrite');if(value)tx.objectStore('tracks').put(value,id);else tx.objectStore('tracks').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});});writeQueue=operation;return operation;}
-function updateTracks(){for(const[id,t]of Object.entries(tracks)){$(id+'-name').textContent=t.filename||'尚未選擇音檔';$(id+'-play').disabled=!t.url;$(id+'-reset').disabled=!t.url;$(id+'-play').textContent=activeTrack===id&&!audio.paused?'暫停':'播放';document.querySelector(`[data-track="${id}"]`).classList.toggle('playing',activeTrack===id);}document.body.dataset.playing=activeTrack||'none';if($('now-playing')){$('now-playing').hidden=!activeTrack;$('playing-title').textContent=tracks[activeTrack]?.name||'';}}
+function updateTracks(){for(const[id,t]of Object.entries(tracks)){$(id+'-name').textContent=t.filename;$(id+'-play').disabled=!t.url;$(id+'-reset').disabled=!t.custom;$(id+'-play').textContent=activeTrack===id&&!audio.paused?'暫停':t.url?'播放':'音樂準備中';document.querySelector(`[data-track="${id}"]`).classList.toggle('playing',activeTrack===id);}document.body.dataset.playing=activeTrack||'none';if($('now-playing')){$('now-playing').hidden=!activeTrack;$('playing-title').textContent=tracks[activeTrack]?.name||'';}}
 function stopTrack(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();activeTrack=null;updateTracks();}
-function bindTrack(id,blob,name){const t=tracks[id];if(activeTrack===id)stopTrack();if(t.url)URL.revokeObjectURL(t.url);t.url=URL.createObjectURL(blob);t.filename=name;updateTracks();}
+function bindTrack(id,blob,name){const t=tracks[id];if(activeTrack===id)stopTrack();if(t.custom&&t.url)URL.revokeObjectURL(t.url);t.url=URL.createObjectURL(blob);t.custom=true;t.filename=name;updateTracks();}
 async function restoreTracks(){const revisions=Object.fromEntries(Object.entries(tracks).map(([id,t])=>[id,t.revision]));try{const db=await openDB();await Promise.all(Object.keys(tracks).map(id=>new Promise(resolve=>{const req=db.transaction('tracks').objectStore('tracks').get(id);req.onsuccess=()=>{if(req.result?.blob instanceof Blob&&tracks[id].revision===revisions[id])bindTrack(id,req.result.blob,req.result.name);resolve();};req.onerror=resolve;})));}catch{$('track-status').textContent='此瀏覽器無法保存音檔；仍可在本次停留選擇播放。';}}
 for(const[id,t]of Object.entries(tracks)){
  $(id+'-file').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!file.type.startsWith('audio/')&&!/\.(mp3|m4a|wav|ogg|flac|aac|opus|webm)$/i.test(file.name)){toast('請選擇 MP3 或其他音訊檔案。');return;}const revision=++t.revision;bindTrack(id,file,file.name);$('track-status').textContent='正在保存音檔…';try{await persistTrack(id,{blob:file,name:file.name});if(t.revision===revision)$('track-status').textContent='已保存在這個瀏覽器；按播放即可聆聽。';}catch{if(t.revision===revision)$('track-status').textContent='本次可播放；此瀏覽器未能保存音檔。';}});
  $(id+'-play').addEventListener('click',async()=>{if(!t.url)return;if(activeTrack===id){if(!audio.paused){audio.pause();updateTracks();return;}try{await audio.play();updateTracks();}catch{$('track-status').textContent='無法繼續播放，請再試一次。';}return;}stopTrack();const token=++playToken;activeTrack=id;audio.src=t.url;applySound();updateTracks();try{await audio.play();if(token!==playToken)return;$('track-status').textContent='正在循環播放'+t.name+'。';}catch{if(token!==playToken)return;activeTrack=null;updateTracks();$('track-status').textContent='無法播放此音檔，請換一個音檔再試。';}});
- $(id+'-reset').addEventListener('click',async()=>{const revision=++t.revision;if(activeTrack===id)stopTrack();if(t.url)URL.revokeObjectURL(t.url);t.url=null;t.filename='';updateTracks();try{await persistTrack(id,null);if(t.revision===revision)$('track-status').textContent='已清除此音檔。';}catch{if(t.revision===revision)$('track-status').textContent='本次已清除；瀏覽器未能保存變更，下次可能需再次清除。';}});
+ $(id+'-reset').addEventListener('click',async()=>{const revision=++t.revision;if(activeTrack===id)stopTrack();if(t.custom&&t.url)URL.revokeObjectURL(t.url);t.url=t.defaultSrc;t.custom=false;t.filename=(t.defaultSrc?'':'音樂準備中 · ')+TEMPLE_TRACKS.find(track=>track.id===id).filename;updateTracks();try{await persistTrack(id,null);if(t.revision===revision)$('track-status').textContent='已恢復預設音樂。';}catch{if(t.revision===revision)$('track-status').textContent='本次已恢復預設；瀏覽器未能保存變更，下次可能需再次恢復。';}});
 }
+
+let checkingDefaults=false;
+async function loadDefaults(){
+ if(checkingDefaults)return;checkingDefaults=true;$('retry-defaults').disabled=true;
+ try{await Promise.all(TEMPLE_TRACKS.map(async item=>{const t=tracks[item.id],src=await resolveTempleDefault(item.filename);t.defaultSrc=src;if(!t.custom){t.url=src;t.filename=(src?'':'音樂準備中 · ')+item.filename;}}));}
+ finally{checkingDefaults=false;const missing=Object.values(tracks).filter(t=>!t.defaultSrc).length;$('music-pending').hidden=!missing;$('music-pending').textContent=missing?`${missing} 首預設音樂準備中，仍可另選自己的音檔。`:'';$('retry-defaults').hidden=!missing;$('retry-defaults').disabled=false;updateTracks();}
+}
+$('retry-defaults').addEventListener('click',loadDefaults);
+
 audio.addEventListener('play',updateTracks);audio.addEventListener('pause',updateTracks);
 audio.addEventListener('error',()=>{if(activeTrack){activeTrack=null;updateTracks();$('track-status').textContent='無法讀取此音檔，請重新選擇。';}});
 
@@ -70,11 +80,11 @@ document.addEventListener('visibilitychange',async()=>{if(!entered||leaving)retu
 $('return-map').addEventListener('click',async e=>{e.preventDefault();if(leaving)return;leaving=true;closeDialogs();if(worldHost()){sound.suspend();worldHost().showMap();return;}$('leave-fade').classList.add('active');const initialVolume=audio.volume,start=performance.now();const fade=now=>{const progress=Math.min(1,(now-start)/600);audio.volume=initialVolume*(1-progress);if(progress<1)requestAnimationFrame(fade);else audio.pause();};requestAnimationFrame(fade);await sound.leave();location.assign($('return-map').href);});
 window.addEventListener('pagehide',()=>{audio.pause();sound.suspend();});
 window.addEventListener('pageshow',e=>{if(e.persisted){leaving=false;$('leave-fade').classList.remove('active');applySound();if(entered)sound.resume();}});
-applyMotion();updateLook();applySound();updateTracks();restoreTracks();tick();
+applyMotion();updateLook();applySound();updateTracks();restoreTracks();loadDefaults();tick();
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入寂靜寺院';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
 function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.042';
+import {unifySoundPanel} from './sound-panel.js?v=0.044';
 unifySoundPanel();
 
 window.addEventListener('p143-room-hide',()=>{leaving=true;closeDialogs();sound.suspend();});
