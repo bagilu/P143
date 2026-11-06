@@ -1,3 +1,4 @@
+import {toggleSiteFullscreen} from './site-fullscreen.js?v=0.045';
 import {TEMPLE_TRACKS,resolveTempleDefault} from './temple-music.js?v=0.044';
 import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import {SolarLightClock as LightClock,formatMinute} from './solar-light-clock.js?v=0.032';
@@ -41,7 +42,7 @@ $('foliage-motion').addEventListener('change',e=>{foliage=e.target.checked;apply
 $('reduce-motion').addEventListener('change',e=>{reduced=e.target.checked;applyMotion();save();});
 reduceMedia.addEventListener('change',e=>{let explicit=false;try{explicit=typeof JSON.parse(localStorage.getItem('p143-temple-settings-v1'))?.reduced==='boolean';}catch{}if(!explicit){reduced=e.matches;applyMotion();}});
 $('reset-view').addEventListener('click',()=>{view.reset();closeDialogs();});
-$('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
+$('fullscreen').addEventListener('click',async()=>{try{closeDialogs();await toggleSiteFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
 
 stage.addEventListener('pointerdown',e=>{if(!entered||leaving||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;pointer={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,wakeOnly:quiet};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');stage.focus({preventScroll:true});});
 stage.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)return;if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>6)pointer.moved=true;if(pointer.moved)view.drag(e.clientX-pointer.lastX,e.clientY-pointer.lastY,look);pointer.lastX=e.clientX;pointer.lastY=e.clientY;});
@@ -84,7 +85,7 @@ applyMotion();updateLook();applySound();updateTracks();restoreTracks();loadDefau
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入寂靜寺院';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
 function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.044';
+import {unifySoundPanel} from './sound-panel.js?v=0.045';
 unifySoundPanel();
 
 window.addEventListener('p143-room-hide',()=>{leaving=true;closeDialogs();sound.suspend();});

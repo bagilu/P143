@@ -1,3 +1,4 @@
+import {toggleSiteFullscreen} from './site-fullscreen.js?v=0.045';
 import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import {SolarLightClock as LightClock,formatMinute} from './solar-light-clock.js?v=0.032';
 import {syncSolarUI} from './solar-ui.js?v=0.032';
@@ -39,7 +40,7 @@ $('room-motion').addEventListener('change',e=>{motion=e.target.checked;applyMoti
 $('reduce-motion').addEventListener('change',e=>{reduced=e.target.checked;applyMotion();save();});
 reduceMedia.addEventListener('change',e=>{let explicit=false;try{explicit=typeof JSON.parse(localStorage.getItem('p143-balcony-settings-v1'))?.reduced==='boolean';}catch{}if(!explicit){reduced=e.matches;applyMotion();}});
 $('reset-view').addEventListener('click',()=>{view.reset();closeDialogs();});
-$('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
+$('fullscreen').addEventListener('click',async()=>{try{closeDialogs();await toggleSiteFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
 
 stage.addEventListener('pointerdown',e=>{if(!entered||leaving||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;view.beginEdge?.();pointer={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,wakeOnly:quiet};stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');stage.focus({preventScroll:true});});
 stage.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)return;if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>6)pointer.moved=true;if(pointer.moved)view.drag(e.clientX-pointer.lastX,e.clientY-pointer.lastY,look);pointer.lastX=e.clientX;pointer.lastY=e.clientY;});
@@ -79,7 +80,7 @@ applyMotion();updateLook();applySound();updateTracks();restoreTracks();loadDefau
 view.load().then(ok=>{if(ok){$('enter').disabled=false;$('enter').textContent='進入都會陽台';}else{$('load-error').textContent='有一張光景未能載入，請重新整理再試，或先回到地圖。';$('enter').textContent='光景尚未備妥';}});
 function loop(now){requestAnimationFrame(loop);if(document.hidden||leaving)return;if(now-lastTick>150){lastTick=now;tick(now);}if(entered)view.update(now/1000);}requestAnimationFrame(loop);
 
-import {unifySoundPanel} from './sound-panel.js?v=0.044';
+import {unifySoundPanel} from './sound-panel.js?v=0.045';
 unifySoundPanel();
 import {addBalconyPositions} from './balcony-positions.js?v=0.040';
 addBalconyPositions(view,{ready:()=>entered&&!leaving,reduced:()=>reduced,onMove:id=>{setQuiet(false);const name={balcony:'樹梢上的陽台',living:'客廳座位',kitchen:'餐廚空間',bedroom:'臥室'}[id];document.querySelector('.location').firstChild.textContent=name;toast('已到'+name+'，可拖曳環顧；光景與音樂持續。');}});

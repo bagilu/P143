@@ -2,7 +2,7 @@ import {ScreenAwakeController} from './screen-awake-controller.js?v=0.031';
 const KEY='p143-screen-awake-v1',body=document.body;
 const readPreference=()=>{try{return JSON.parse(localStorage.getItem(KEY))?.enabled!==false;}catch{return true;}};
 const panel=document.createElement('section');panel.className='companion-settings screen-awake-settings';
-panel.innerHTML='<h3>讓風景陪久一點</h3><label class="check"><input id="keep-screen-awake" type="checkbox" checked>保持螢幕開啟</label><p id="screen-awake-status" class="subtle" role="status" aria-live="polite"></p><button id="screen-awake-retry" class="secondary" hidden>重新嘗試</button><p class="subtle">此設定五個場所共用。只在這個網頁顯示時生效；切換分頁後暫停，回來時會再嘗試開啟。手動鎖定、省電及裝置管理設定仍由系統決定。</p>';
+panel.innerHTML='<h3>讓風景陪久一點</h3><label class="check"><input id="keep-screen-awake" type="checkbox" checked>保持螢幕開啟</label><p id="screen-awake-status" class="subtle" role="status" aria-live="polite"></p><button id="screen-awake-retry" class="secondary" hidden>重新嘗試</button><p class="subtle">此設定各個場所共用。只在這個網頁顯示時生效；切換分頁後暫停，回來時會再嘗試開啟。手動鎖定、省電及裝置管理設定仍由系統決定。</p>';
 const help=document.getElementById('help'),actions=help.querySelector('.settings-actions');if(actions)actions.before(panel);else help.append(panel);
 const toggle=document.getElementById('keep-screen-awake'),status=document.getElementById('screen-awake-status'),retry=document.getElementById('screen-awake-retry');toggle.checked=readPreference();
 const messages={idle:'進入場所後，會自動嘗試保持螢幕開啟。',active:'已保持螢幕開啟，可以安心看景、聽音樂。',requesting:'正在請求保持螢幕開啟…',off:'已關閉，螢幕將依裝置設定休息。',paused:'目前暫停；回到這個分頁時會再嘗試開啟。',unsupported:'目前這個網頁環境不支援保持螢幕開啟；仍可正常看景、聽音樂。',blocked:'目前未能保持螢幕開啟，可能受省電或瀏覽器設定影響。',released:'系統已解除保持螢幕開啟，您可以重新嘗試。','release-failed':'尚未能解除保持螢幕開啟；可再試一次，或離開這個分頁。'};

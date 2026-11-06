@@ -1,5 +1,6 @@
 // Album artwork is independent of the scene photographs.
 export const MUSIC_CATALOG={
+ church:[{"name": "晨光聖詠", "english": "Chant at First Light", "description": "清澈的詠唱，如晨光穿過石窗，陪心緒慢慢安定。", "genre": "MONASTIC CHANT"}, {"name": "迴廊和聲", "english": "Voices in the Cloister", "description": "聲聲和音沿著迴廊舒展，讓片刻停留，多一點溫暖。", "genre": "SACRED HARMONY"}, {"name": "晚禱餘音", "english": "Echoes of Evening Prayer", "description": "管風琴與人聲輕輕相伴，把一天的紛擾留在遠處。", "genre": "EVENING PRAYER"}],
  seaside:[
   {name:'琥珀時光',english:'Amber Hours',genre:'JAZZ',description:'讓溫暖爵士，陪著海面上的光慢慢流動。'},
   {name:'靜謐琴聲',english:'Still Keys',genre:'SOLO PIANO',description:'在琴聲與海風之間，留一段安靜。'},

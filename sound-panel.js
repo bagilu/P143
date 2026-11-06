@@ -1,4 +1,4 @@
-import {MUSIC_CATALOG} from './music-catalog.js?v=0.044';
+import {MUSIC_CATALOG} from './music-catalog.js?v=0.045';
 // Move existing controls so their audio, persistence and file handlers stay intact.
 export function unifySoundPanel(){
  const $=id=>document.getElementById(id),panel=$('sound');

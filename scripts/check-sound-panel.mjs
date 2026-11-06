@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-for(const scene of ['snow','balcony','garden','temple']){
+for(const scene of ['snow','balcony','garden','temple','church']){
  const source=readFileSync(scene+'.js','utf8');
  const match=source.match(/\$\(id\+'-play'\)\.addEventListener\('click',async\(\)=>\{([\s\S]*?)\}\);/);
  assert.ok(match,scene);
@@ -11,8 +11,8 @@ for(const scene of ['snow','balcony','garden','temple']){
  await handler();assert.equal(audio.paused,true);assert.equal(audio.currentTime,42);await handler();assert.equal(audio.paused,false);assert.equal(audio.currentTime,42);assert.equal(stopped,0);
  assert.ok(source.includes('activeTrack&&resumeMusic'),scene+' preserves user pause on visibility restore');
 }
-for(const scene of ['seaside','snow','balcony','garden','temple']){
- const html=readFileSync(scene+'.html','utf8');assert.ok(html.includes('sound-panel.css?v=0.044'));
+for(const scene of ['seaside','snow','balcony','garden','temple','church','church']){
+ const html=readFileSync(scene+'.html','utf8');assert.ok(html.includes('sound-panel.css?v=0.045'));
  const js=readFileSync(scene==='seaside'?'app.js':scene+'.js','utf8');assert.ok(js.includes('unifySoundPanel();'));
 }
-console.log('PASS: four audio controllers pause/resume at retained position, visibility restore respects pause, all five scenes load shared panel.');
+console.log('PASS: five audio controllers pause/resume at retained position, visibility restore respects pause, all six scenes load shared panel.');

@@ -1,4 +1,4 @@
-import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.025';
+import {MAP_SIZE,PLACES,framePlacesCamera,fitCamera,constrainCamera,zoomCamera} from './world-map-model.js?v=0.045';
 import {startMapLight} from './map-light.js?v=0.034';
 const $=id=>document.getElementById(id),viewport=$('map-viewport'),world=$('map-world');
 const pins=new Map();let camera,baseScale=1,width=1,height=1,saved=null;

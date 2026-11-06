@@ -1,4 +1,4 @@
-const rooms={seaside:'海邊小屋',temple:'寂靜寺院',snow:'雪山暖屋',balcony:'都會陽台',garden:'松風庭園'};
+const rooms={seaside:'海邊小屋',temple:'寂靜寺院',snow:'雪山暖屋',balcony:'都會陽台',garden:'松風庭園',church:'古老教堂'};
 const audio=document.createElement('audio');audio.preload='metadata';audio.loop=true;document.body.append(audio);
 const frames=new Map();let visible=null,revision=0;
 const widget=document.createElement('aside');widget.id='world-music';widget.hidden=true;widget.innerHTML='<div><small>隨你回到地圖的旋律</small><span id="world-music-title"></span></div><button id="world-music-toggle" aria-label="暫停音樂">Ⅱ</button>';document.body.append(widget);
@@ -8,7 +8,7 @@ for(const type of ['play','pause','error','emptied'])audio.addEventListener(type
 document.getElementById('world-music-toggle').addEventListener('click',async()=>{try{if(audio.paused)await audio.play();else audio.pause();}catch{document.getElementById('world-music-title').textContent='請再按一次播放，或返回原場所選曲。';}refresh();});
 function notify(frame,event){try{frame.contentWindow.dispatchEvent(new Event(event));}catch{}}
 function showMap(push=true){if(visible)notify(visible,'p143-room-hide');for(const f of frames.values())f.hidden=true;visible=null;document.body.classList.remove('world-room-open');if(push)history.pushState(null,'',location.pathname+location.search);refresh();document.getElementById('map-viewport')?.focus({preventScroll:true});}
-function openRoom(id,push=true){if(!rooms[id])return;if(visible)notify(visible,'p143-room-hide');let f=frames.get(id);if(!f){f=document.createElement('iframe');f.className='world-room';f.title=rooms[id];f.allow='autoplay; fullscreen';f.src=id+'.html?v=0.044';frames.set(id,f);document.body.append(f);}for(const other of frames.values())other.hidden=other!==f;visible=f;document.body.classList.add('world-room-open');if(push)history.pushState(null,'','#room='+id);notify(f,'p143-room-resume');refresh();}
+function openRoom(id,push=true){if(!rooms[id])return;if(visible)notify(visible,'p143-room-hide');let f=frames.get(id);if(!f){f=document.createElement('iframe');f.className='world-room';f.title=rooms[id];f.allow='autoplay; fullscreen';f.src=id+'.html?v=0.045';frames.set(id,f);document.body.append(f);}for(const other of frames.values())other.hidden=other!==f;visible=f;document.body.classList.add('world-room-open');if(push)history.pushState(null,'','#room='+id);notify(f,'p143-room-resume');refresh();}
 async function entered(win){if(![...frames.values()].some(f=>f.contentWindow===win))return;const token=++revision,owner=music.owner;
  if(owner&&music.ownerWindow!==win){const volume=audio.volume;for(let i=1;i<=10;i++){await new Promise(r=>setTimeout(r,20));if(token!==revision||music.owner!==owner)return;audio.volume=volume*(1-i/10);}audio.pause();audio.removeAttribute('src');audio.load();music.owner=null;music.ownerWindow=null;music.title='';}
  for(const [id,f]of frames){if(f!==visible&&f.contentWindow!==music.ownerWindow){frames.delete(id);f.remove();}}refresh();}

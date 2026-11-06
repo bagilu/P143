@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {toggleSiteFullscreen} from '../site-fullscreen.js';
+const calls=[];
+const doc=name=>({fullscreenElement:null,documentElement:{requestFullscreen:async()=>calls.push(name+' enter')},exitFullscreen:async()=>calls.push(name+' exit')});
+const outer=doc('world'),room=doc('room');const parent={p143World:{},document:outer},win={parent};room.defaultView=win;
+await toggleSiteFullscreen(room);assert.deepEqual(calls,['world enter']);
+outer.fullscreenElement=outer.documentElement;await toggleSiteFullscreen(room);assert.equal(calls.at(-1),'world exit');
+outer.fullscreenElement=null;room.fullscreenElement=room.documentElement;await toggleSiteFullscreen(room);assert.equal(calls.at(-1),'room exit');
+const standalone=doc('standalone');standalone.defaultView={};standalone.defaultView.parent=standalone.defaultView;await toggleSiteFullscreen(standalone);assert.equal(calls.at(-1),'standalone enter');
+standalone.documentElement={};await assert.rejects(toggleSiteFullscreen(standalone),/unavailable/);
+console.log('PASS: embedded rooms fullscreen the world, outer exit, legacy child exit, standalone and unsupported fallback.');

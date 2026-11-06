@@ -1,3 +1,4 @@
+import {toggleSiteFullscreen} from './site-fullscreen.js?v=0.045';
 import {createMusicAudio,worldHost} from './music-bridge.js?v=0.042';
 import * as THREE from './assets/three.module.js';
 import { SOFA_VIEW, OCEAN_PLATE } from './view-config.js';
@@ -277,7 +278,7 @@ $('reduce-motion').addEventListener('change',e=>{reduced=e.target.checked;syncSe
 for(const [key,value] of [['sea',seaVolume],['music',musicVolume]]){$(key+'-volume').value=Math.round(value*100);$(key+'-value').textContent=Math.round(value*100)+'%';}
 setVolumes();syncSeaMotion();updatePlayer();
 for(const axis of ['x','y']){$('invert-look-'+axis).addEventListener('change',e=>{lookSettings[axis==='x'?'invertX':'invertY']=e.target.checked;try{localStorage.setItem('cabin-look-invert-'+axis,String(e.target.checked));}catch{}$('drag-direction').textContent=describeLookSettings(lookSettings);activity();});}
-$('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else toast('此瀏覽器未提供全螢幕，可使用橫向畫面。');}catch{toast('目前無法切換全螢幕。');}});
+$('fullscreen').addEventListener('click',async()=>{try{closeDialogs();await toggleSiteFullscreen();}catch{toast('此瀏覽器暫不支援全螢幕。');}});
 $('wake').addEventListener('click',activity);
 $('display-mode').addEventListener('change',e=>{try{localStorage.setItem('cabin-display-mode-v5',e.target.value);location.reload();}catch{toast('此瀏覽器無法保存畫面設定。');}});
 document.addEventListener('focusin',activity);
@@ -322,7 +323,7 @@ $('return-map').addEventListener('click',e=>{
 });
 window.addEventListener('pageshow',e=>{if(e.persisted){leavingRoom=false;setVolumes();updatePlayer();if(entered)initSea();activity();}});
 
-import {unifySoundPanel} from './sound-panel.js?v=0.044';
+import {unifySoundPanel} from './sound-panel.js?v=0.045';
 unifySoundPanel();
 
 window.addEventListener('p143-room-hide',()=>{leavingRoom=true;closeDialogs();audioContext?.suspend();});

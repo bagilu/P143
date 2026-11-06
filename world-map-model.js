@@ -1,22 +1,44 @@
 export const MAP_SIZE={width:1672,height:941};
-export const MAP_IMAGE='assets/world-map-v0023.png';
+export const MAP_IMAGE='assets/world-map-day-v0045.jpg';
 // Positions refer to the authored photographic landscape, not real coordinates.
 export const PLACES=[
  {id:'seaside',number:'01',name:'海邊小屋',english:'Quiet Seaside Cabin',kind:'海岸',x:546/1672,y:670/941,status:'open',href:'seaside.html',icon:'cabin',description:'挑一張唱片，坐下看海。讓海浪、光線與喜歡的音樂，陪你待一會兒。',detail:'海浪 · 黑膠音樂 · 十二時段光景'},
  {id:'temple',number:'02',name:'寂靜寺院',english:'Silent Temple',kind:'山林',x:665/1672,y:218/941,status:'open',href:'temple.html',icon:'temple',description:'坐在禪房，望向山林庭院。讓一盞暖燈、林間微風與悠然鐘聲，陪伴自在停留的片刻。',detail:'山林微風 · 遠處鐘聲 · 隨時光停留'},
  {id:'snow',number:'03',name:'雪山暖屋',english:'Snowbound Cabin',kind:'雪山',x:.815,y:.174,status:'open',href:'snow.html',icon:'mountain',description:'窩在雪線上的暖屋，望著遠山與雪色。讓爐火、一杯熱飲與喜歡的音樂，陪你自在待著。',detail:'壁爐柴火 · 自選音樂 · 十二時段光景'},
  {id:'city',number:'04',name:'都會陽台',english:'City Balcony',kind:'城市',x:.816,y:.741,status:'open',href:'balcony.html',icon:'city',description:'坐在樹梢與屋頂之間。讓一杯飲料、對街窗燈與喜歡的音樂，陪伴屬於自己的片刻。',detail:'陽台微風 · 自選音樂 · 十二時段光景'},
- {id:'garden',number:'05',name:'松風庭園',english:'Pine Breeze Garden',kind:'松竹',x:.496,y:.453,status:'open',href:'garden.html',icon:'garden',description:'坐在榻榻米與木廊旁，望著松竹與雨後晴光。一杯茶，陪你自在待一會兒。',detail:'松竹微風 · 茶席音樂 · 十二時段光景'}
+ {id:'garden',number:'05',name:'松風庭園',english:'Pine Breeze Garden',kind:'松竹',x:.496,y:.453,status:'open',href:'garden.html',icon:'garden',description:'坐在榻榻米與木廊旁，望著松竹與雨後晴光。一杯茶，陪你自在待一會兒。',detail:'松竹微風 · 茶席音樂 · 十二時段光景'},
+ {id:'church',number:'06',name:'古老教堂',english:'The Old Chapel',kind:'修院',x:1220/1672,y:385/941,status:'open',href:'church.html',icon:'church',description:'在古修道院的一間小室，讓庭院、燈光與聖歌陪伴停留。',detail:'修院小室 · 聖歌與遠鐘 · 月光庭院'}
 ];
 export function fitCamera(width,height,compact=false){const scale=(compact?Math.min:Math.max)(width/MAP_SIZE.width,height/MAP_SIZE.height);return constrainCamera({scale,x:(width-MAP_SIZE.width*scale)/2,y:(height-MAP_SIZE.height*scale)/2},width,height);}
 export function constrainCamera(camera,width,height){const w=MAP_SIZE.width*camera.scale,h=MAP_SIZE.height*camera.scale;return {...camera,x:w<=width?(width-w)/2:Math.min(0,Math.max(width-w,camera.x)),y:h<=height?(height-h)/2:Math.min(0,Math.max(height-h,camera.y))};}
 export function zoomCamera(camera,scale,anchor,width,height){const ratio=scale/camera.scale;return constrainCamera({scale,x:anchor.x-(anchor.x-camera.x)*ratio,y:anchor.y-(anchor.y-camera.y)*ratio},width,height);}
 
-// On a narrow screen, frame all five destinations before the user explores farther.
+// On a narrow screen, frame all six destinations before the user explores farther.
 export function framePlacesCamera(width,height){const xs=PLACES.map(p=>p.x*MAP_SIZE.width),ys=PLACES.map(p=>p.y*MAP_SIZE.height),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys),fit=fitCamera(width,height,true),scale=Math.max(fit.scale,Math.min((width-88)/(right-left),(height-100)/(bottom-top)));return constrainCamera({scale,x:width/2-(left+right)/2*scale,y:height/2-(top+bottom)/2*scale},width,height);}
 
 // Authored along the roads traced by the user; shared trunks are drawn once.
-export const MAP_JUNCTIONS=[{"id": "garden-turn", "x": 697.468, "y": 440.086}, {"id": "west-road", "x": 718.38, "y": 557.13}, {"id": "river-road", "x": 984.14, "y": 627.356}];
+export const MAP_JUNCTIONS=[
+ {
+  "id": "garden-turn",
+  "x": 697.468,
+  "y": 440.086
+ },
+ {
+  "id": "west-road",
+  "x": 718.38,
+  "y": 557.13
+ },
+ {
+  "id": "river-road",
+  "x": 984.14,
+  "y": 627.356
+ },
+ {
+  "id": "church-road",
+  "x": 1207.204,
+  "y": 392.402
+ }
+];
 export const MAP_TRAILS=[
  {
   "from": "seaside",
@@ -50,7 +72,17 @@ export const MAP_TRAILS=[
  },
  {
   "from": "river-road",
+  "to": "church-road",
+  "d": "M 984.140 627.356 C 983.646 625.292 980.178 612.785 979.783 609.149 C 979.388 605.513 978.087 598.127 980.655 595.277 C 983.222 592.428 996.217 585.677 1002.438 584.006 C 1008.660 582.336 1027.847 581.521 1035.549 580.538 C 1043.252 579.556 1062.997 576.712 1070.403 575.336 C 1077.810 573.961 1094.284 570.955 1100.900 568.401 C 1107.517 565.846 1123.845 556.922 1128.783 552.795 C 1133.721 548.668 1141.603 536.998 1144.467 531.987 C 1147.331 526.976 1153.065 513.491 1154.052 508.578 C 1155.040 503.665 1154.860 492.666 1153.181 488.638 C 1151.502 484.609 1142.103 476.176 1139.239 473.032 C 1136.375 469.887 1129.393 464.431 1127.912 460.894 C 1126.430 457.357 1126.169 445.750 1126.169 441.820 C 1126.169 437.890 1125.245 430.046 1127.912 426.214 C 1130.578 422.382 1143.770 411.152 1149.695 408.008 C 1155.620 404.863 1173.675 400.239 1180.192 398.471 C 1186.710 396.702 1200.686 394.662 1207.204 392.402"
+ },
+ {
+  "from": "church-road",
   "to": "snow",
-  "d": "M 984.140 627.356 C 983.646 625.292 980.178 612.785 979.783 609.149 C 979.388 605.513 978.087 598.127 980.655 595.277 C 983.222 592.428 996.217 585.677 1002.438 584.006 C 1008.660 582.336 1027.847 581.521 1035.549 580.538 C 1043.252 579.556 1062.997 576.712 1070.403 575.336 C 1077.810 573.961 1094.284 570.955 1100.900 568.401 C 1107.517 565.846 1123.845 556.922 1128.783 552.795 C 1133.721 548.668 1141.603 536.998 1144.467 531.987 C 1147.331 526.976 1153.065 513.491 1154.052 508.578 C 1155.040 503.665 1154.860 492.666 1153.181 488.638 C 1151.502 484.609 1142.103 476.176 1139.239 473.032 C 1136.375 469.887 1129.393 464.431 1127.912 460.894 C 1126.430 457.357 1126.169 445.750 1126.169 441.820 C 1126.169 437.890 1125.245 430.046 1127.912 426.214 C 1130.578 422.382 1143.770 411.152 1149.695 408.008 C 1155.620 404.863 1173.675 400.239 1180.192 398.471 C 1186.710 396.702 1200.686 394.662 1207.204 392.402 C 1213.722 390.142 1230.887 381.576 1237.701 378.530 C 1244.515 375.484 1260.019 368.375 1267.327 365.525 C 1274.634 362.676 1294.280 356.335 1302.180 353.387 C 1310.081 350.439 1329.727 341.775 1337.034 339.515 C 1344.342 337.255 1359.945 334.724 1366.660 333.446 C 1373.375 332.169 1390.459 330.406 1396.286 328.245 C 1402.112 326.083 1416.884 317.320 1418.069 314.373 C 1419.254 311.425 1410.494 305.477 1406.742 302.235 C 1402.989 298.992 1387.624 289.103 1384.958 285.762 C 1382.292 282.421 1383.314 275.607 1383.215 272.757 C 1383.117 269.908 1382.210 263.469 1384.087 260.619 C 1385.963 257.770 1395.920 249.776 1399.771 247.615 C 1403.622 245.453 1416.588 243.314 1418.069 241.546 C 1419.550 239.777 1415.705 234.367 1412.841 232.009 C 1409.977 229.651 1397.738 223.194 1392.800 220.738 C 1387.863 218.281 1373.520 212.594 1369.274 210.334 C 1365.028 208.074 1357.406 203.352 1355.332 200.797 C 1353.259 198.242 1351.371 190.544 1350.976 187.792 C 1350.581 185.041 1350.521 179.248 1351.847 176.521 C 1353.174 173.795 1361.452 165.183 1362.680 163.734"
+  "d": "M 1207.204 392.402 C 1213.722 390.142 1230.887 381.576 1237.701 378.530 C 1244.515 375.484 1260.019 368.375 1267.327 365.525 C 1274.634 362.676 1294.280 356.335 1302.180 353.387 C 1310.081 350.439 1329.727 341.775 1337.034 339.515 C 1344.342 337.255 1359.945 334.724 1366.660 333.446 C 1373.375 332.169 1390.459 330.406 1396.286 328.245 C 1402.112 326.083 1416.884 317.320 1418.069 314.373 C 1419.254 311.425 1410.494 305.477 1406.742 302.235 C 1402.989 298.992 1387.624 289.103 1384.958 285.762 C 1382.292 282.421 1383.314 275.607 1383.215 272.757 C 1383.117 269.908 1382.210 263.469 1384.087 260.619 C 1385.963 257.770 1395.920 249.776 1399.771 247.615 C 1403.622 245.453 1416.588 243.314 1418.069 241.546 C 1419.550 239.777 1415.705 234.367 1412.841 232.009 C 1409.977 229.651 1397.738 223.194 1392.800 220.738 C 1387.863 218.281 1373.520 212.594 1369.274 210.334 C 1365.028 208.074 1357.406 203.352 1355.332 200.797 C 1353.259 198.242 1351.371 190.544 1350.976 187.792 C 1350.581 185.041 1350.521 179.248 1351.847 176.521 C 1353.174 173.795 1361.452 165.183 1362.680 163.734"
+ },
+ {
+  "from": "church-road",
+  "to": "church",
+  "d": "M 1207.204 392.402 C 1212 392 1217 390 1220 385"
  }
 ];
