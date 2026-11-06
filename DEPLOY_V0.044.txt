@@ -1,0 +1,10 @@
+P143 V0.044 更新包（建議用這份）
+
+1. 解壓縮本 ZIP。
+2. 將所有程式檔與 assets/music-covers/ 上傳到 GitHub 的 P143 儲存庫根目錄，取代同名檔案。
+3. 保留 GitHub 既有的 Music/、books/ 與 assets/ 其他素材，不要刪除。
+4. 您已上傳的 Music/P143-21.mp3、P143-22.mp3、P143-23.mp3 可直接沿用。
+5. 此為更新包，必須搭配 P143 原有網站；完整重新部署請使用 P143_SomewhereToBe_V0.044.zip。
+
+GitHub Pages 維持 main 分支、/(root) 發布。ZIP 必須解壓縮後上傳，不能只上傳 ZIP 本身。
+若 GitHub 檔案同步服務仍延遲，手動上傳後的發布也可能需要等待。
