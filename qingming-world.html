@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171914">
+  <meta name="description" content="坐在宋代茶樓窗邊，遠望虹橋、河道與汴梁街市。">
+  <title>茶窗遠眺虹橋｜自在之所</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,"Noto Sans TC",sans-serif;background:#171914;color:#f5ecd9;font-synthesis:none;text-rendering:optimizeLegibility}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}body{height:100dvh;background:#171914}
+    button,a{font:inherit}button{color:inherit}
+    #stage{position:relative;width:100%;height:100%;overflow:hidden;background:#171914;isolation:isolate}
+    #backdrop{position:absolute;inset:-28px;background-position:center;background-size:cover;filter:blur(22px) brightness(.42) saturate(.85);transform:scale(1.04);transition:background-image 1s ease;z-index:-2}
+    #stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,13,11,.54),transparent 23%,transparent 70%,rgba(12,13,11,.44));pointer-events:none;z-index:1}
+    .world-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transition:opacity 2.4s ease;user-select:none;-webkit-user-drag:none}
+    .world-image.active{opacity:1}
+    header{position:absolute;z-index:3;inset:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:clamp(16px,2.4vw,34px);pointer-events:none}
+    .brand{pointer-events:auto;text-shadow:0 2px 14px #000;font-family:serif;letter-spacing:.12em}
+    .brand strong{display:block;font-weight:400;font-size:clamp(17px,2vw,24px)}.brand small{display:block;margin-top:5px;font:11px/1.5 system-ui,sans-serif;letter-spacing:.04em;color:#e1d7c4}
+    .toolbar{pointer-events:auto;display:flex;align-items:center;gap:6px;padding:7px;background:#171914a8;border:1px solid #f4e8ce24;border-radius:12px;backdrop-filter:blur(12px);box-shadow:0 8px 28px #0003}
+    .toolbar button,.toolbar a{border:1px solid transparent;border-radius:8px;background:transparent;color:#f5ecd9;text-decoration:none;padding:9px 12px;font-size:13px;white-space:nowrap;cursor:pointer;transition:background .2s,border-color .2s}
+    .toolbar button:hover,.toolbar a:hover{background:#ffffff18}.toolbar button[aria-pressed="true"]{background:#d2b77b2b;border-color:#d2b77b66;color:#ffe9b7}
+    .toolbar .back-link{border-color:#ffffff25;background:#ffffff0c}
+    #status{position:absolute;z-index:3;top:82px;right:clamp(16px,2.4vw,34px);max-width:min(390px,calc(100vw - 32px));margin:0;padding:7px 11px;border-radius:8px;background:#1719148f;color:#e8ddc8;font-size:11px;line-height:1.5;backdrop-filter:blur(8px);opacity:0;transition:opacity .3s;pointer-events:none}
+    #status.show{opacity:1}
+    #teacup-return{position:absolute;z-index:4;width:74px;height:74px;padding:0;transform:translate(-50%,-50%);border:2px solid #e5c78645;border-radius:50%;background:radial-gradient(circle,#eacb8230 0 31%,#eacb820c 51%,transparent 72%);box-shadow:0 0 0 0 #e5c78645;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s;animation:cupHint 3.8s ease-out 1.2s 2;touch-action:manipulation}
+    #teacup-return:hover,#teacup-return:focus-visible{border-color:#ffe2a5;background:radial-gradient(circle,#eacb8250 0 35%,#eacb821c 56%,transparent 73%);box-shadow:0 0 0 7px #e5c78618;outline:none}
+    #teacup-return .hint{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);width:max-content;max-width:190px;padding:7px 10px;border:1px solid #ffffff24;border-radius:8px;background:#171914c9;color:#f4e9d3;font-size:11px;letter-spacing:.03em;box-shadow:0 3px 16px #0004;opacity:0;transition:opacity .25s;pointer-events:none}
+    #teacup-return:hover .hint,#teacup-return:focus-visible .hint,#teacup-return.hint-on .hint{opacity:1}
+    @keyframes cupHint{0%,100%{box-shadow:0 0 0 0 #e5c78600}30%{box-shadow:0 0 0 12px #e5c7861c}60%{box-shadow:0 0 0 2px #e5c78600}}
+    footer{position:absolute;z-index:3;left:clamp(16px,2.4vw,34px);bottom:clamp(14px,2vw,28px);color:#f0e5d0;font-size:11px;text-shadow:0 2px 10px #000;pointer-events:none}
+    footer span{display:block;color:#d5cab6;margin-top:4px}
+    @media(orientation:portrait){.world-image{object-fit:contain}.toolbar{gap:2px;padding:5px}.toolbar button,.toolbar a{padding:8px 9px;font-size:12px}.brand small{max-width:150px}}
+    @media(max-width:520px){header{align-items:flex-start;flex-direction:column;gap:10px}.toolbar{align-self:flex-end;margin-top:-5px}#status{top:130px;left:16px;right:auto;font-size:10px}#teacup-return{width:68px;height:68px}.brand small{max-width:100%;}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main id="stage" aria-label="坐在宋代茶樓窗邊眺望虹橋與汴梁街市">
+    <div id="backdrop" aria-hidden="true"></div>
+    <img class="world-image" data-scene="day" src="assets/qingming-world-day.jpg" alt="日光下，從茶樓窗邊看虹橋與汴梁河市" fetchpriority="high">
+    <img class="world-image" data-scene="dusk" src="assets/qingming-world-dusk.jpg" alt="暮色中，從茶樓窗邊看虹橋與汴梁河市">
+    <img class="world-image" data-scene="night" src="assets/qingming-world-night.jpg" alt="月夜中，從茶樓窗邊看虹橋與汴梁河市">
+    <header>
+      <div class="brand"><strong>茶窗遠眺虹橋</strong><small>坐在茶樓裡，看看汴梁的一日光景</small></div>
+      <nav class="toolbar" aria-label="光景控制">
+        <button type="button" data-scene-button="day" aria-pressed="false">日光</button>
+        <button type="button" data-scene-button="dusk" aria-pressed="false">暮光</button>
+        <button type="button" data-scene-button="night" aria-pressed="false">夜光</button>
+        <button type="button" id="follow-time" aria-pressed="true">跟隨時段</button>
+        <a class="back-link" href="qingming.html">回看原畫</a>
+      </nav>
+    </header>
+    <p id="status" role="status" aria-live="polite"></p>
+    <button id="teacup-return" type="button" aria-label="點茶杯，返回進入此景前的位置" title="點茶杯，返回進入此景前的位置"><span class="hint">輕點茶杯，回到來時之處</span></button>
+    <footer>張擇端《清明上河圖》虹橋構圖的沉浸式再詮釋<span>遠景行人疏落 · 無動物 · 茶盞可返回</span></footer>
+  </main>
+  <script type="module" src="qingming-world.js?v=0.053"></script>
+</body>
+</html>
