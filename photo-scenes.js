@@ -932,3 +932,7 @@ export const PHOTO_SCENES={
     ]
   }
 };
+
+// Hidden passage: coordinates are authored in the original photographs.
+PHOTO_SCENES.entry.hotspots.unshift({x:38,y:512,w:125,h:61,action:'underwater'});
+PHOTO_SCENES.underwater={src:'assets/photo-underwater.jpg',plates:{day:'assets/photo-underwater-day.jpg',gold:'assets/photo-underwater.jpg',night:'assets/photo-underwater-night.jpg'},width:1672,height:941,zoom:1.08,hotspots:[{x:55,y:100,w:155,h:165,action:'cabin'}]};

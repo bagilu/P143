@@ -4,10 +4,10 @@ import * as THREE from './assets/three.module.js';
 import { SOFA_VIEW, OCEAN_PLATE } from './view-config.js';
 import { applyDragLook, describeLookSettings, readLookSettings } from './look-controls.js?v=0.013';
 import { RoomEnvironment } from './assets/RoomEnvironment.js';
-import { PhotoView } from './photo-view.js?v=0.014';
+import { PhotoView } from './photo-view.js?v=0.051';
 import { SolarLightClock as LightClock,formatMinute } from './solar-light-clock.js?v=0.032';
 import {syncSolarUI} from './solar-ui.js?v=0.032';
-import { PHOTO_SCENES } from './photo-scenes.js?v=0.014';
+import { PHOTO_SCENES } from './photo-scenes.js?v=0.051';
 import { parseSoundSettings } from './sound-settings.js';
 
 const $=id=>document.getElementById(id);
@@ -215,9 +215,28 @@ const destinations={entry:{pos:new THREE.Vector3(-2.18,1.6,1.92),look:new THREE.
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 function scenicView(name){if(photoMode)return photoView.setView(name);if(!scenicMode)return;const svg=$('scenic-view'),img=svg.querySelector('image');if(fallbackMode==='model'){const view=['sofa','entry','records','window'].includes(name)?name:'entry';img.setAttribute('href',`assets/model-${view}.png`);img.setAttribute('width','960');img.setAttribute('height','540');svg.setAttribute('viewBox','0 0 960 540');svg.setAttribute('aria-label',`小屋實際模型預覽：${{sofa:'沙發',entry:'入口',records:'唱機前',window:'窗邊'}[view]}`);return;}if(name==='sofa'){img.setAttribute('href','assets/sofa-view.png');img.setAttribute('width','1672');img.setAttribute('height','941');svg.setAttribute('viewBox','0 0 1672 941');svg.setAttribute('aria-label','坐在沙發看海的靜景畫面');return;}img.setAttribute('href','assets/cabin-views.png');img.setAttribute('width','1536');img.setAttribute('height','1024');const boxes={entry:'0 512 768 512',records:'768 512 768 512',window:'180 25 1150 385'};svg.setAttribute('viewBox',boxes[name]??boxes.entry);svg.setAttribute('aria-label',name==='window'?'窗邊海景的靜景畫面':name==='records'?'唱機前的靜景畫面':'海邊小屋入口的靜景畫面');}
 async function fadeTo(position,look,view){transitioning=true;$('fade').classList.add('active');await delay(reduced?100:440);camera.position.copy(position);lookToward(look);camera.fov=view==='sofa'?SOFA_VIEW.verticalFov:SOFA_VIEW.standingFov;camera.updateProjectionMatrix();if(view)await scenicView(view);await delay(80);$('fade').classList.remove('active');transitioning=false;}
+
+// The passage stays within this PhotoView, preserving music and the light clock.
+async function secretPassage(name){
+ if(!photoMode||transitioning)return;
+ closeDialogs();navigation=null;keys.clear();transitioning=true;canvas.style.cursor='';
+ $('fade').classList.add('active');
+ try{
+  await delay(reduced?100:440);
+  if(!await photoView.setView(name)){toast('圖片暫時無法載入，請再試一次。');return;}
+  seated=false;$('sit-label').textContent='坐下看海';
+  const below=name==='underwater';
+  document.body.classList.toggle('underwater-room',below);
+  for(const id of ['sit-button','window-button'])$(id).hidden=below;
+  $('location').hidden=below;
+  if(!below)arrival('entry');
+  await delay(80);
+ }finally{$('fade').classList.remove('active');transitioning=false;activity();}
+}
+
 async function stand(){if(!seated)return;seated=false;await fadeTo(destinations.sofa.pos,destinations.sofa.look,'entry');$('sit-label').textContent='坐下看海';setLocation('沙發旁',scenicMode?staticHint():'拖曳轉頭 · 輕點地板走動');activity();}
-async function sit(){if(transitioning)return;closeDialogs();navigation=null;keys.clear();if(seated){await stand();return;}await fadeTo(new THREE.Vector3(...SOFA_VIEW.position),new THREE.Vector3(...SOFA_VIEW.target),'sofa');seated=true;$('sit-label').textContent='起身走走';setLocation('坐在海邊',photoMode?'左右拖曳環顧 · 自在看海':'不必做什麼，就在這裡待著。');activity();}
-async function navigate(name,done){if(transitioning)return;closeDialogs();await stand();const dest=destinations[name];if(reduced||scenicMode){await fadeTo(dest.pos,dest.look,name);arrival(name);done?.();return;}const points=pathTo(dest.pos);if(!points){toast('這裡走不過去，試著從家具旁邊繞行。');return;}navigation={points,name,look:dest.look,done};activity();}
+async function sit(){if(transitioning||photoView?.view==='underwater')return;closeDialogs();navigation=null;keys.clear();if(seated){await stand();return;}await fadeTo(new THREE.Vector3(...SOFA_VIEW.position),new THREE.Vector3(...SOFA_VIEW.target),'sofa');seated=true;$('sit-label').textContent='起身走走';setLocation('坐在海邊',photoMode?'左右拖曳環顧 · 自在看海':'不必做什麼，就在這裡待著。');activity();}
+async function navigate(name,done){if(transitioning)return;if(photoView?.view==='underwater'){closeDialogs();done?.();return;}closeDialogs();await stand();const dest=destinations[name];if(reduced||scenicMode){await fadeTo(dest.pos,dest.look,name);arrival(name);done?.();return;}const points=pathTo(dest.pos);if(!points){toast('這裡走不過去，試著從家具旁邊繞行。');return;}navigation={points,name,look:dest.look,done};activity();}
 function arrival(name){if(name==='window')setLocation('窗邊','慢慢看海，也可以什麼都不想。');else if(name==='records')setLocation('唱機前','三張唱片，三種心情。');else setLocation('初到小屋',scenicMode?staticHint():'拖曳看看四周 · 方向鍵慢慢走');}
 
 // Shared defaults stream from Music/. Personal replacements stay in this browser.
@@ -286,11 +305,17 @@ const modeNote=document.createElement('p');modeNote.className='subtle';modeNote.
 
 // Drag-to-look never triggers a click on release. Pinch and multitouch are ignored.
 let pointer=null;
+canvas.addEventListener('pointermove',e=>{
+ if(!photoMode||!entered||anyDialog()||transitioning||pointer?.drag){canvas.style.cursor='';return;}
+ const action=photoView.hit(e.clientX,e.clientY);
+ canvas.style.cursor=action==='underwater'||action==='cabin'?'pointer':'';
+});
+canvas.addEventListener('pointerleave',()=>{canvas.style.cursor='';});
 canvas.addEventListener('pointerdown',e=>{if(!entered||anyDialog()||transitioning||!e.isPrimary)return;const hidden=document.body.classList.contains('hud-hidden');activity();pointer={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,drag:false,wakeOnly:hidden};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)return;const dx=e.clientX-pointer.lastX,dy=e.clientY-pointer.lastY;if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>7)pointer.drag=true;if(pointer.drag){navigation=null;if(photoMode){photoView.drag(dx,dy,lookSettings);}else if(!scenicMode){({yaw,pitch}=applyDragLook(yaw,pitch,dx,dy,lookSettings));}activity();}pointer.lastX=e.clientX;pointer.lastY=e.clientY;});
-canvas.addEventListener('pointerup',e=>{if(!pointer||e.pointerId!==pointer.id)return;const p=pointer;pointer=null;canvas.releasePointerCapture(e.pointerId);if(!p.drag&&!p.wakeOnly)clickScene(e);});
+canvas.addEventListener('pointerup',e=>{if(!pointer||e.pointerId!==pointer.id)return;const p=pointer;pointer=null;canvas.releasePointerCapture(e.pointerId);if(!p.drag&&(!p.wakeOnly||['underwater','cabin'].includes(photoView?.hit(e.clientX,e.clientY))))clickScene(e);});
 canvas.addEventListener('pointercancel',()=>{pointer=null;});
-function clickScene(e){if(photoMode){const action=photoView.hit(e.clientX,e.clientY);if(action==='sofa')sit();else if(action==='records')navigate('records',()=>openDialog('records'));else if(action==='window')navigate('window');activity();return;}if(scenicMode){activity();return;}mouse.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(interactionObjects,false)[0];if(hit&&hit.distance<5){const data=hit.object.userData;if(data.kind==='sofa'){sit();return;}if(data.kind==='records'||data.kind==='sleeve'){navigate('records',()=>openDialog('records'));return;}}if(seated)return;const p=new THREE.Vector3();if(raycaster.ray.intersectPlane(floorPlane,p)&&walkable(p.x,p.z)){const points=pathTo(p);if(points)navigation={points,name:'walk',look:null};}}
+function clickScene(e){if(photoMode){const action=photoView.hit(e.clientX,e.clientY);if(action==='underwater'){secretPassage('underwater');return;}else if(action==='cabin'){secretPassage('entry');return;}else if(action==='sofa')sit();else if(action==='records')navigate('records',()=>openDialog('records'));else if(action==='window')navigate('window');activity();return;}if(scenicMode){activity();return;}mouse.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(interactionObjects,false)[0];if(hit&&hit.distance<5){const data=hit.object.userData;if(data.kind==='sofa'){sit();return;}if(data.kind==='records'||data.kind==='sleeve'){navigate('records',()=>openDialog('records'));return;}}if(seated)return;const p=new THREE.Vector3();if(raycaster.ray.intersectPlane(floorPlane,p)&&walkable(p.x,p.z)){const points=pathTo(p);if(points)navigation={points,name:'walk',look:null};}}
 window.addEventListener('keydown',e=>{if(!entered||anyDialog()||transitioning)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)){e.preventDefault();if(photoMode){const steps={arrowup:[0,-35],arrowdown:[0,35],arrowleft:[-35,0],arrowright:[35,0]};const step=steps[e.key.toLowerCase()];if(step)photoView.drag(...step,{invertX:false,invertY:false});else toast('寫實視景請使用下方按鈕切換位置。');activity();return;}if(scenicMode){activity();toast('固定視角模式請使用下方按鈕切換位置。');return;}if(seated){toast('點「起身走走」後就能移動。');return;}navigation=null;keys.add(e.key.toLowerCase());activity();}});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>{keys.clear();pointer=null;});
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(photoMode)photoView.resize();});
@@ -305,7 +330,7 @@ function loop(){requestAnimationFrame(loop);const now=performance.now();if(now-l
  oceanMaterial.uniforms.uTime.value=elapsed;
  if(photoMode&&entered&&!document.hidden)photoView.update(elapsed);
  if(!reduced){for(const c of curtains){const pos=c.mesh.geometry.attributes.position;for(let i=0;i<pos.count;i++){const y=c.base[i*3+1];pos.array[i*3+2]=c.base[i*3+2]+Math.sin(elapsed*.65+y*2+i*.03)*.012*(1-(y+1.19)/2.38);}pos.needsUpdate=true;}}
- if(seaGain&&audioContext?.state==='running'){const swell=.62+.22*Math.sin(elapsed*.46)+.12*Math.sin(elapsed*.19);const target=muted||leavingRoom?0:seaVolume*.48*swell;seaGain.gain.setTargetAtTime(target,audioContext.currentTime,.25);}
+ if(seaGain&&audioContext?.state==='running'){const swell=.62+.22*Math.sin(elapsed*.46)+.12*Math.sin(elapsed*.19);const target=muted||leavingRoom?0:seaVolume*.48*swell*(photoView?.view==='underwater'?.12:1);seaGain.gain.setTargetAtTime(target,audioContext.currentTime,.25);}
  if(seated&&!anyDialog()&&performance.now()-lastActivity>5500){document.body.classList.add('hud-hidden');$('wake').hidden=false;}
  renderer.render(scene,camera);
 }

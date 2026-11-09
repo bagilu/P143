@@ -22,10 +22,10 @@ export class PhotoView {
   this.view='entry';this.ready=this.setView('entry');this.ready.then(ok=>{if(ok&&this.scenes.sofa?.wideLook)this.preloadView('sofa');});
  }
  load(src){if(!this.cache.has(src))this.cache.set(src,new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(true);img.onerror=()=>{this.cache.delete(src);resolve(false);};img.src=src;}));return this.cache.get(src);}
- preloadView(name){const scene=this.scenes[name];if(!scene)return Promise.resolve(false);return Promise.all(['day','gold','night'].map(plate=>this.load(plate==='gold'?scene.src:scene.src.replace('.png',`-${plate}.png`)))).then(results=>results.every(Boolean));}
+ preloadView(name){const scene=this.scenes[name];if(!scene)return Promise.resolve(false);return Promise.all(['day','gold','night'].map(plate=>this.load(scene.plates?.[plate]||(plate==='gold'?scene.src:scene.src.replace('.png',`-${plate}.png`))))).then(results=>results.every(Boolean));}
  async renderScene(name){
   const token=++this.token,view=this.scenes[name]?name:'entry',scene=this.scenes[view];
-  const sources=this.layers.map(({plate})=>plate==='gold'?scene.src:scene.src.replace('.png',`-${plate}.png`));
+  const sources=this.layers.map(({plate})=>scene.plates?.[plate]||(plate==='gold'?scene.src:scene.src.replace('.png',`-${plate}.png`)));
   if(!(await Promise.all(sources.map(src=>this.load(src)))).every(Boolean)||token!==this.token)return false;
   this.view=view;this.yaw=this.pitch=0;this.lookTarget=null;
   this.layers.forEach(({image,motion,grass},i)=>{image.setAttribute('preserveAspectRatio','none');image.setAttribute('href',sources[i]);image.setAttribute('width',scene.width);image.setAttribute('height',scene.height);motion.setScene({...scene,src:sources[i]});motion.setEnabled(this.enabled);motion.setStrength(this.strength);grass.setScene({...scene,src:sources[i]});grass.setEnabled(this.grassEnabled);});
@@ -41,7 +41,7 @@ export class PhotoView {
   this.svg.style.filter=`brightness(${state.brightness}) saturate(${state.saturation})`;
   this.tint.setAttribute('fill',`rgb(${state.tint.map(Math.round).join(',')})`);this.tint.setAttribute('opacity',state.tintAlpha);
   this.svg.setAttribute('data-light-time',formatMinute(minute));this.svg.setAttribute('data-light-weights',state.weights.map(w=>w.toFixed(6)).join(','));
-  this.svg.setAttribute('aria-label',`寫實室內視景：${{entry:'入口',sofa:'沙發',records:'唱機前',window:'窗邊'}[this.view]} · ${formatMinute(minute)}`);
+  this.svg.setAttribute('aria-label',`寫實室內視景：${{entry:'入口',sofa:'沙發',records:'唱機前',window:'窗邊',underwater:'海底房間'}[this.view]} · ${formatMinute(minute)}`);
  }
  drag(dx,dy,settings){this.lookTarget=null;const look=applyDragLook(this.yaw,this.pitch,dx,dy,settings);this.yaw=Math.max(-.65,Math.min(.65,look.yaw));this.pitch=Math.max(-.4,Math.min(.4,look.pitch));this.resize();}
  lookAt(direction,animate=true){const yaw=SOFA_LOOK_TARGETS[direction];if(yaw===undefined||!this.scenes[this.view].wideLook)return;if(animate)this.lookTarget={fromYaw:this.yaw,fromPitch:this.pitch,toYaw:yaw,start:null};else{this.lookTarget=null;this.yaw=yaw;this.pitch=0;this.resize();}}
