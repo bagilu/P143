@@ -1,3 +1,9 @@
+const returnKey='p143-qingming-return-url';
+try{
+  const ref=document.referrer?new URL(document.referrer):null;
+  if(ref?.origin===location.origin&&/\/temple\.html$/.test(ref.pathname))sessionStorage.setItem(returnKey,ref.href);
+  else if(!ref?.pathname.endsWith('/qingming-world.html'))sessionStorage.removeItem(returnKey);
+}catch{}
 const view=document.getElementById('view'),img=document.getElementById('painting'),loading=document.getElementById('loading'),position=document.getElementById('position'),zoomLabel=document.getElementById('zoom-label');
 const W=7200,H=1800;let zoom=1,cx=W/2,cy=H/2,ready=false;const points=new Map();let gesture=null;
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));

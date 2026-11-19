@@ -48,6 +48,14 @@ window.addEventListener('resize',updateHotspot,{passive:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&following)showScene(sceneForLocalTime(),{auto:true,announce:false});});
 setInterval(()=>{if(following){const next=sceneForLocalTime();if(next!==current)showScene(next,{auto:true,announce:true});}},60000);
 cup.addEventListener('click',()=>{
+  try{
+    const returnUrl=sessionStorage.getItem('p143-qingming-return-url');
+    if(returnUrl&&new URL(returnUrl).origin===location.origin){
+      sessionStorage.removeItem('p143-qingming-return-url');
+      location.href=returnUrl;
+      return;
+    }
+  }catch{}
   const cameFromThisSite=document.referrer&&new URL(document.referrer).origin===location.origin;
   if(cameFromThisSite&&history.length>1){history.back();return;}
   location.href='qingming.html';
