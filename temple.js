@@ -31,7 +31,7 @@ function openDialog(id){setQuiet(false);$(id).showModal();}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());}
 for(const button of document.querySelectorAll('.close'))button.addEventListener('click',()=>button.closest('dialog').close());
 for(const id of ['light','sound','help'])$(id+'-button').addEventListener('click',()=>{tick();openDialog(id);});
-$('qingming-button').addEventListener('click',()=>{location.href='qingming.html?v=0.057';});
+$('qingming-button').addEventListener('click',()=>{location.href='qingming.html?v=0.058';});
 $('sit-button').addEventListener('click',()=>setQuiet(true));$('wake').addEventListener('click',()=>setQuiet(false));
 $('light-time').addEventListener('input',e=>{clock.select(Number(e.target.value));tick();});
 $('light-follow').addEventListener('change',e=>{if(e.target.checked)clock.followNow();else clock.select(clock.minute);tick();});

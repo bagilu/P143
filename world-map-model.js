@@ -2,12 +2,12 @@ export const MAP_SIZE={width:1672,height:941};
 export const MAP_IMAGE='assets/world-map-day-v0045.jpg';
 // Positions refer to the authored photographic landscape, not real coordinates.
 export const PLACES=[
- {id:'seaside',number:'01',name:'海邊小屋',english:'Quiet Seaside Cabin',kind:'海岸',x:546/1672,y:670/941,status:'open',href:'seaside.html?v=0.057',icon:'cabin',description:'挑一張唱片，坐下看海。讓海浪、光線與喜歡的音樂，陪你待一會兒。',detail:'海浪 · 黑膠音樂 · 十二時段光景'},
- {id:'temple',number:'02',name:'寂靜寺院',english:'Silent Temple',kind:'山林',x:665/1672,y:218/941,status:'open',href:'temple.html?v=0.057',icon:'temple',description:'坐在禪房，望向山林庭院。讓一盞暖燈、林間微風與悠然鐘聲，陪伴自在停留的片刻。',detail:'山林微風 · 遠處鐘聲 · 隨時光停留'},
- {id:'snow',number:'03',name:'雪山暖屋',english:'Snowbound Cabin',kind:'雪山',x:.815,y:.174,status:'open',href:'snow.html?v=0.057',icon:'mountain',description:'窩在雪線上的暖屋，望著遠山與雪色。讓爐火、一杯熱飲與喜歡的音樂，陪你自在待著。',detail:'壁爐柴火 · 自選音樂 · 十二時段光景'},
- {id:'city',number:'04',name:'都會陽台',english:'City Balcony',kind:'城市',x:.816,y:.741,status:'open',href:'balcony.html?v=0.057',icon:'city',description:'坐在樹梢與屋頂之間。讓一杯飲料、對街窗燈與喜歡的音樂，陪伴屬於自己的片刻。',detail:'陽台微風 · 自選音樂 · 十二時段光景'},
- {id:'garden',number:'05',name:'松風庭園',english:'Pine Breeze Garden',kind:'松竹',x:.496,y:.453,status:'open',href:'garden.html?v=0.057',icon:'garden',description:'坐在榻榻米與木廊旁，望著松竹與雨後晴光。一杯茶，陪你自在待一會兒。',detail:'松竹微風 · 茶席音樂 · 十二時段光景'},
- {id:'church',number:'06',name:'古老教堂',english:'The Old Chapel',kind:'修院',x:1220/1672,y:385/941,status:'open',href:'church.html?v=0.057',icon:'church',description:'在古修道院的一間小室，讓庭院、燈光與聖歌陪伴停留。',detail:'修院小室 · 聖歌與遠鐘 · 月光庭院'}
+ {id:'seaside',number:'01',name:'海邊小屋',english:'Quiet Seaside Cabin',kind:'海岸',x:546/1672,y:670/941,status:'open',href:'seaside.html?v=0.058',icon:'cabin',description:'挑一張唱片，坐下看海。讓海浪、光線與喜歡的音樂，陪你待一會兒。',detail:'海浪 · 黑膠音樂 · 十二時段光景'},
+ {id:'temple',number:'02',name:'寂靜寺院',english:'Silent Temple',kind:'山林',x:665/1672,y:218/941,status:'open',href:'temple.html?v=0.058',icon:'temple',description:'坐在禪房，望向山林庭院。讓一盞暖燈、林間微風與悠然鐘聲，陪伴自在停留的片刻。',detail:'山林微風 · 遠處鐘聲 · 隨時光停留'},
+ {id:'snow',number:'03',name:'雪山暖屋',english:'Snowbound Cabin',kind:'雪山',x:.815,y:.174,status:'open',href:'snow.html?v=0.058',icon:'mountain',description:'窩在雪線上的暖屋，望著遠山與雪色。讓爐火、一杯熱飲與喜歡的音樂，陪你自在待著。',detail:'壁爐柴火 · 自選音樂 · 十二時段光景'},
+ {id:'city',number:'04',name:'都會陽台',english:'City Balcony',kind:'城市',x:.816,y:.741,status:'open',href:'balcony.html?v=0.058',icon:'city',description:'坐在樹梢與屋頂之間。讓一杯飲料、對街窗燈與喜歡的音樂，陪伴屬於自己的片刻。',detail:'陽台微風 · 自選音樂 · 十二時段光景'},
+ {id:'garden',number:'05',name:'松風庭園',english:'Pine Breeze Garden',kind:'松竹',x:.496,y:.453,status:'open',href:'garden.html?v=0.058',icon:'garden',description:'坐在榻榻米與木廊旁，望著松竹與雨後晴光。一杯茶，陪你自在待一會兒。',detail:'松竹微風 · 茶席音樂 · 十二時段光景'},
+ {id:'church',number:'06',name:'古老教堂',english:'The Old Chapel',kind:'修院',x:1220/1672,y:385/941,status:'open',href:'church.html?v=0.058',icon:'church',description:'在古修道院的一間小室，讓庭院、燈光與聖歌陪伴停留。',detail:'修院小室 · 聖歌與遠鐘 · 月光庭院'}
 ];
 export function fitCamera(width,height,compact=false){const scale=(compact?Math.min:Math.max)(width/MAP_SIZE.width,height/MAP_SIZE.height);return constrainCamera({scale,x:(width-MAP_SIZE.width*scale)/2,y:(height-MAP_SIZE.height*scale)/2},width,height);}
 export function constrainCamera(camera,width,height){const w=MAP_SIZE.width*camera.scale,h=MAP_SIZE.height*camera.scale;return {...camera,x:w<=width?(width-w)/2:Math.min(0,Math.max(width-w,camera.x)),y:h<=height?(height-h)/2:Math.min(0,Math.max(height-h,camera.y))};}
